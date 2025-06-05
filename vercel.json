@@ -1,31 +1,16 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "**/*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "**/*.css",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "**/*.js",
-      "use": "@vercel/static"
-    }
+    { "src": "**/*.html", "use": "@vercel/static" },
+    { "src": "**/*.css", "use": "@vercel/static" },
+    { "src": "**/*.js", "use": "@vercel/static" },
+    { "src": "**/*.jpg", "use": "@vercel/static" },
+    { "src": "**/*.jpeg", "use": "@vercel/static" },
+    { "src": "**/*.png", "use": "@vercel/static" }
   ],
   "routes": [
-    {
-      "src": "/admin/(.*)",
-      "dest": "/admin/$1"
-    },
-    {
-      "src": "/students/(.*)",
-      "dest": "/students/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
+    { "src": "/admin/(.*)", "dest": "/views/admin/$1" },
+    { "src": "/students/(.*)", "dest": "/views/students/$1" },
+    { "src": "/(.*)", "dest": "/$1" }
   ]
 }
