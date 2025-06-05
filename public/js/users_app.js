@@ -1,4 +1,4 @@
-import { login, getCurrentUser, logoutUser } from "./users_api.js";
+import { login, getCurrentUser, logoutUser } from "/public/js/users_api.js";
 
 function showToast(message, type = "success") {
   const toast = document.getElementById("toast");
