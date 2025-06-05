@@ -176,7 +176,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (result.success) {
         showToast("Logout berhasil!", "success");
-        window.location.href = "/frontend/views/login.html";
+        window.location.href = "/views/login.html";
       } else {
         showToast(`Logout gagal: ${result.message}`, "error");
         console.error("Logout error detail:", result.details);
