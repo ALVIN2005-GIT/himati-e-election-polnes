@@ -1,17 +1,12 @@
 {
+  "version": 2,
+  "builds": [
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    }
+  ],
   "routes": [
-    {
-      "src": "/admin/(.*)",
-      "dest": "/admin/$1"
-    },
-    {
-      "src": "/students/(.*)",
-      "dest": "/students/$1"
-    },
-    {
-      "src": "/views/(.*)",
-      "dest": "/views/$1"
-    },
     {
       "src": "/(.*)",
       "dest": "/$1"
