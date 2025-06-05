@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="../../public/assets/himatipolnes.jpg"
+    />
+    <title>Vote Kandidat | HIMA TI e-Election</title>
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Quicksand:wght@300..700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="../../public/css/bootstrap.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../public/css/votes.css" />
+    <link rel="stylesheet" href="../../public/css/toast.css" />
+    <style>
+      .time-critical {
+        color: #ff4444 !important;
+        font-weight: bold;
+        animation: pulse-red 1s infinite alternate;
+      }
+
+      /* Animasi pulse untuk efek berkedip */
+      @keyframes pulse-red {
+        0% {
+          color: #ff4444;
+          text-shadow: 0 0 5px rgba(255, 68, 68, 0.3);
+        }
+        100% {
+          color: #cc0000;
+          text-shadow: 0 0 10px rgba(255, 68, 68, 0.6);
+        }
+      }
+
+      /* Variasi tanpa animasi jika tidak diinginkan */
+      .time-critical-simple {
+        color: #ff0000 !important;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Voting Countdown Overlay -->
+    <div id="votingOverlay" class="voting-overlay">
+      <div class="countdown-container">
+        <h2 class="countdown-title">Voting Belum Dimulai</h2>
+        <p class="countdown-description">Pemilihan akan dimulai dalam:</p>
+        <div class="countdown-timer">
+          <div class="countdown-block">
+            <span id="days" class="countdown-value">00</span>
+            <span class="countdown-label">Hari</span>
+          </div>
+          <div class="countdown-block">
+            <span id="hours" class="countdown-value">00</span>
+            <span class="countdown-label">Jam</span>
+          </div>
+          <div class="countdown-block">
+            <span id="minutes" class="countdown-value">00</span>
+            <span class="countdown-label">Menit</span>
+          </div>
+          <div class="countdown-block">
+            <span id="seconds" class="countdown-value">00</span>
+            <span class="countdown-label">Detik</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-wrapper">
+      <div class="container text-center my-5">
+        <div class="header-container">
+          <h2 class="header-title mb-4">
+            Pemilihan HIMA TI <span id="electionPeriod"></span>
+          </h2>
+          <div class="header-subtitle">
+            Daftar Kandidat Ketua dan Wakil Ketua HIMA TI
+          </div>
+          <div class="header-line"></div>
+        </div>
+        <div class="time-info-container">
+          <div class="current-time">
+            <i class="bi bi-clock"></i>
+            <span id="currentTime">00:00:00</span>
+            <!-- Uncomment if you want to display milliseconds -->
+            <!-- <span class="ms-separator">.</span><span id="currentTimeMs">000</span> -->
+          </div>
+          <div class="voting-time-left">
+            <i class="bi bi-hourglass-split"></i>
+            Waktu tersisa:
+            <span id="timeRemaining">00:00:00</span>
+            <!-- Uncomment if you want to display milliseconds -->
+            <!-- <span class="ms-separator">.</span><span id="timeRemainingMs">000</span> -->
+          </div>
+        </div>
+        <button id="logout-btn" class="nav-link">
+          <i class="bi bi-box-arrow-left me-1"></i>Logout
+        </button>
+
+        <div class="row justify-content-center mt-5" id="candidateList">
+          <!-- Candidates will be loaded here dynamically via JavaScript -->
+          <p class="no-data">Loading candidates...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <div id="confirm-toast" class="toast confirm hidden">
+      <span id="confirm-message">Apakah kamu yakin ingin logout?</span>
+      <div class="buttons">
+        <button id="confirm-yes">Ya</button>
+        <button id="confirm-no">Tidak</button>
+      </div>
+    </div>
+
+    <!-- Bootstrap Script -->
+    <script src="../../public/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="/frontend/public/js/users_app.js"></script>
+    <script type="module" src="/frontend/public/js/votes_app.js"></script>
+
+    <!-- JavaScript -->
+    <script type="module" src="/frontend/public/js/candidates_app.js"></script>
+    <script type="module">
+      import { loadCandidates } from "/frontend/public/js/candidates_app.js";
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadCandidates();
+      });
+
+      function showMessage(type, message) {
+        console.log(`${type.toUpperCase()}: ${message}`);
+
+        let messageEl = document.getElementById("messageContainer");
+        if (!messageEl) {
+          messageEl = document.createElement("div");
+          messageEl.id = "messageContainer";
+          messageEl.className = "message-container";
+          document.body.appendChild(messageEl);
+        }
+
+        const alert = document.createElement("div");
+        alert.className = `alert alert-${type}`;
+        alert.textContent = message;
+
+        messageEl.appendChild(alert);
+
+        setTimeout(() => {
+          if (alert && alert.parentNode) {
+            alert.remove();
+            if (messageEl.children.length === 0) {
+              messageEl.remove();
+            }
+          }
+        }, 5000);
+      }
+    </script>
+  </body>
+</html>

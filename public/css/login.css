@@ -1,0 +1,114 @@
+/* * {
+  border: 1px solid black;
+} */
+
+/* ////////////////////////////////////////////////////////// */
+/* login.html Start */
+
+body {
+  font-family: "Poppins", sans-serif;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #0066ff, #00ccff);
+  padding: 20px;
+}
+
+.login-card {
+  background-color: #fff;
+  padding: 40px 30px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-header img.logo {
+  width: 80px;
+  margin-bottom: 15px;
+}
+
+.login-header h2 {
+  font-weight: 700;
+  margin-bottom: 25px;
+}
+
+.login-form .form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.login-form .form-control {
+  border-color: 50px;
+  padding: 12px 20px;
+}
+
+.login-form .form-control:focus {
+  border-color: #0066ff;
+  box-shadow: 0 0 8px rgba(0, 102, 255, 0.5);
+  outline: none;
+  transition: box-shadow 0.3s ease;
+}
+
+.login-btn {
+  border-radius: 50px;
+  padding: 12px;
+  width: 100%;
+  background-color: #0066ff;
+  color: #fff;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.login-btn:hover {
+  background-color: #004bb5;
+}
+
+.login-footer {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #555;
+}
+
+.password-container {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 38px;
+  right: 10px;
+  cursor: pointer;
+  color: #6c757d;
+  z-index: 10;
+}
+
+.password-toggle:hover {
+  color: #212529;
+}
+
+#password:placeholder-shown + #togglePassword {
+  display: none;
+}
+
+/* Delete ikon mata bawaan browser */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+}
+
+/* login.html End */
+/* ////////////////////////////////////////////////////////// */

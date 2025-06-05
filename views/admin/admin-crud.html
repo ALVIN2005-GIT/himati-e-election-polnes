@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="../../public/assets/himatipolnes.jpg"
+    />
+    <title>Admin Management | HIMA TI e-Election</title>
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Quicksand:wght@300..700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="../../public/css/bootstrap.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../public/css/admin.css" />
+    <link rel="stylesheet" href="../../public/css/admin-crud.css" />
+    <link rel="stylesheet" href="../../public/css/admin-navbar.css" />
+    <link rel="stylesheet" href="../../public/css/toast.css" />
+  </head>
+  <body>
+    <!-- Navbar akan di-load otomatis -->
+
+    <div class="floating-particles"></div>
+
+    <div class="admin-container">
+      <header class="title-card">
+        <h1><i class="fas fa-user me-1"></i>Admin Management</h1>
+      </header>
+
+      <div class="admin-section">
+        <section class="form-section">
+          <div class="form-card">
+            <h2 id="formTitle" class="section-title">
+              <i class="fas fa-user-plus"></i> Register New Admin
+            </h2>
+            <form id="adminForm">
+              <input type="hidden" id="admin_id" />
+
+              <div class="form-group">
+                <label for="full_name"
+                  ><i class="fas fa-user me-1"></i>Full Name</label
+                >
+                <input
+                  type="text"
+                  id="full_name"
+                  placeholder="Enter full name"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="password"
+                  ><i class="fas fa-lock me-1"></i>Password</label
+                >
+                <div class="password-input-wrapper">
+                  <input
+                    type="password"
+                    id="password"
+                    placeholder="Enter secure password"
+                  />
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    onclick="togglePasswordVisibility()"
+                    title="Show/Hide Password"
+                  >
+                    <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="phone_number"
+                  ><i class="fas fa-phone me-1"></i>Phone Number</label
+                >
+                <input
+                  type="text"
+                  id="phone_number"
+                  placeholder="Enter phone number"
+                  required
+                />
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn-primary" id="submitBtn">
+                  <i class="fas fa-plus-circle me-1"></i> Register Admin
+                </button>
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  onclick="resetForm()"
+                >
+                  <i class="fas fa-times"></i> Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section class="list-section">
+          <div class="table-header">
+            <h3 class="section-title">
+              <i class="fas fa-list"></i> Admin Directory
+            </h3>
+            <div class="admin-count" id="adminCount">
+              <i class="fas fa-users"></i>
+              <span>0 Admins</span>
+            </div>
+          </div>
+
+          <div id="adminCandidateList">
+            <table id="adminTable">
+              <thead>
+                <tr>
+                  <th><i class="fas fa-hashtag"></i> No</th>
+                  <th><i class="fas fa-user"></i> Full Name</th>
+                  <th><i class="fas fa-phone"></i> Phone</th>
+                  <th><i class="fas fa-cogs"></i> Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <div id="confirm-toast" class="toast confirm hidden">
+      <span id="confirm-message">Apakah kamu yakin ingin logout?</span>
+      <div class="buttons">
+        <button id="confirm-yes">Ya</button>
+        <button id="confirm-no">Tidak</button>
+      </div>
+    </div>
+
+    <script>
+      const apiUrl = "http://localhost:5410/api/users";
+
+      function showConfirmToast(message) {
+        return new Promise((resolve) => {
+          console.log("Menampilkan toast konfirmasi...");
+          const confirmToast = document.getElementById("confirm-toast");
+          const confirmMessage = document.getElementById("confirm-message");
+          const yesBtn = document.getElementById("confirm-yes");
+          const noBtn = document.getElementById("confirm-no");
+
+          if (!confirmToast || !confirmMessage || !yesBtn || !noBtn) {
+            console.error("Elemen toast konfirmasi tidak ditemukan!");
+            return resolve(false);
+          }
+
+          // Tampilkan toast: hapus hidden, lalu trigger animasi show
+          confirmMessage.textContent = message;
+          confirmToast.classList.remove("hidden");
+
+          // Delay sedikit agar transisi animasi bisa aktif
+          setTimeout(() => {
+            confirmToast.classList.add("show");
+          }, 10);
+
+          const cleanup = () => {
+            // Mulai animasi keluar
+            confirmToast.classList.remove("show");
+
+            // Setelah animasi selesai (300ms), sembunyikan elemen
+            setTimeout(() => {
+              confirmToast.classList.add("hidden");
+              document.removeEventListener("mousedown", onOutsideClick);
+              yesBtn.removeEventListener("click", onYes);
+              noBtn.removeEventListener("click", onNo);
+            }, 300);
+          };
+
+          const onYes = () => {
+            cleanup();
+            resolve(true);
+          };
+          const onNo = () => {
+            cleanup();
+            resolve(false);
+          };
+
+          yesBtn.addEventListener("click", onYes);
+          noBtn.addEventListener("click", onNo);
+
+          const onOutsideClick = (event) => {
+            if (!confirmToast.contains(event.target)) {
+              cleanup();
+              resolve(false); // anggap user memilih "Tidak"
+            }
+          };
+
+          setTimeout(() => {
+            document.addEventListener("mousedown", onOutsideClick);
+          }, 50);
+        });
+      }
+
+      function showToast(message, type = "success") {
+        // If toast is locked, don't show new toasts
+        if (window._toastLocked) return;
+
+        const toast = document.getElementById("toast");
+        if (!toast) return;
+
+        toast.className = `toast ${type} show`;
+        toast.textContent = message;
+
+        setTimeout(() => {
+          toast.classList.remove("show");
+        }, 3000);
+      }
+
+      // Validation functions
+      function validateFullName(fullName) {
+        if (!fullName || fullName.trim().length < 2) {
+          showToast("Nama Panjang Harus Lebih Dari 2 Digit", "error");
+          return false;
+        }
+        if (fullName.trim().length > 100) {
+          showToast("Nama Panjang Tidak Lebih Dari 100 Digit", "error");
+          return false;
+        }
+        return true;
+      }
+
+      function validatePassword(password, isEdit = false) {
+        if (!isEdit && (!password || password.trim().length === 0)) {
+          showToast("Password Harus Ada Untuk Admin Baru", "error");
+          return false;
+        }
+        if (password && password.length < 6) {
+          showToast("Password Tidak Bisa Lebih Panjang Dari 6 Digit ", "error");
+          return false;
+        }
+        if (password && password.length > 100) {
+          showToast("Password Tidak Bisa Lebih Dari 100 Digit", "error");
+          return false;
+        }
+        return true;
+      }
+
+      function validatePhoneNumber(phoneNumber) {
+        if (!phoneNumber || phoneNumber.trim().length === 0) {
+          showToast("Nomor Telepon Harus Ada", "error");
+          return false;
+        }
+
+        // Remove any non-digit characters for validation
+        const cleanPhone = phoneNumber.replace(/\D/g, "");
+
+        if (cleanPhone.length < 10) {
+          showToast("Nomor Telepon Harus Lebih Dari 10 Digit", "error");
+          return false;
+        }
+        if (cleanPhone.length > 15) {
+          showToast("Nomor Telepon Harus Lebih Dari 15 Digit", "error");
+          return false;
+        }
+
+        // Check for Indonesian phone number format
+        if (!cleanPhone.match(/^(08|628|\+628)/)) {
+          showToast("Nomor Harus Dari Indonesia", "warning");
+        }
+
+        return true;
+      }
+
+      // Password visibility toggle function
+      function togglePasswordVisibility() {
+        const passwordInput = document.getElementById("password");
+        const toggleIcon = document.getElementById("passwordToggleIcon");
+
+        if (passwordInput.type === "password") {
+          passwordInput.type = "text";
+          passwordInput.classList.add("password-field");
+          toggleIcon.className = "fas fa-eye-slash";
+        } else {
+          passwordInput.type = "password";
+          passwordInput.classList.remove("password-field");
+          toggleIcon.className = "fas fa-eye";
+        }
+      }
+
+      // Create floating particles
+      function createParticles() {
+        const particleContainer = document.querySelector(".floating-particles");
+        for (let i = 0; i < 20; i++) {
+          const particle = document.createElement("div");
+          particle.className = "particle";
+          particle.style.left = Math.random() * 100 + "%";
+          particle.style.top = Math.random() * 100 + "%";
+          particle.style.animationDelay = Math.random() * 6 + "s";
+          particleContainer.appendChild(particle);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        createParticles();
+        fetchCurrentUser();
+        fetchAdmins();
+      });
+
+      function fetchCurrentUser() {
+        fetch(`${apiUrl}/current`, {
+          method: "GET",
+          credentials: "include",
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error("Not authenticated");
+            return res.json();
+          })
+          .catch(() => {
+            showToast("Tolong Login Terlebih Dahulu", "error");
+            setTimeout(() => {
+              window.location.href = "login.html";
+            }, 2000);
+          });
+      }
+
+      function fetchAdmins() {
+        fetch(apiUrl, {
+          method: "GET",
+          credentials: "include",
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error("Failed to fetch admins");
+            return res.json();
+          })
+          .then((data) => {
+            const tbody = document.querySelector("#adminTable tbody");
+            tbody.innerHTML = "";
+
+            const admins = data.data.filter((user) => user.role === "admin");
+
+            // Update admin count
+            document.querySelector("#adminCount span").textContent = `${
+              admins.length
+            } Admin${admins.length !== 1 ? "s" : ""}`;
+
+            if (admins.length === 0) {
+              tbody.innerHTML = `
+                <tr>
+                  <td colspan="4" class="empty-state">
+                    <i class="fas fa-users-slash"></i>
+                    <p>No administrators found</p>
+                  </td>
+                </tr>
+              `;
+              return;
+            }
+
+            admins.forEach((admin, index) => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td><strong>#${index + 1}</strong></td>
+                <td>${admin.full_name}</td>
+                <td>${admin.phone_number}</td>
+                <td class="action-buttons">
+                  <button class="btn-edit" onclick="editAdmin(${admin.id}, \`${
+                admin.full_name
+              }\`, \`${admin.phone_number}\`)">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <button class="btn-delete" onclick="deleteAdmin(${admin.id})">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
+                </td>`;
+              tbody.appendChild(row);
+            });
+
+            showToast("Admin Berhasil Dimuat", "success");
+          })
+          .catch((err) => {
+            console.error(err);
+            showToast("Gagal Untuk Memuat Admin", "error");
+          });
+      }
+
+      document
+        .getElementById("adminForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const id = document.getElementById("admin_id").value;
+          const full_name = document.getElementById("full_name").value.trim();
+          const password = document.getElementById("password").value.trim();
+          const phone_number = document
+            .getElementById("phone_number")
+            .value.trim();
+
+          // Validate all fields
+          if (!validateFullName(full_name)) return;
+          if (!validatePassword(password, !!id)) return;
+          if (!validatePhoneNumber(phone_number)) return;
+
+          const payload = {
+            full_name,
+            phone_number,
+            role: "admin",
+          };
+
+          if (password) payload.password = password;
+
+          const method = id ? "PATCH" : "POST";
+          const endpoint = id ? `${apiUrl}/${id}` : apiUrl;
+
+          try {
+            const res = await fetch(endpoint, {
+              method,
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify(payload),
+            });
+
+            if (!res.ok) {
+              const errorData = await res.json();
+              throw new Error(errorData.message || "Failed to save admin");
+            }
+
+            const result = await res.json();
+            showToast("Mengupload Data Admin...", "info");
+            showToast(
+              id
+                ? "Admin updated successfully!"
+                : "Admin registered successfully!",
+              "success"
+            );
+
+            fetchAdmins();
+            resetForm();
+          } catch (err) {
+            console.error(err);
+            showToast(`Error: ${err.message}`, "error");
+          }
+        });
+
+      async function deleteAdmin(id) {
+        const confirmed = await showConfirmToast(
+          "Apakah Anda Ingin Menghapus Admin Ini?"
+        );
+
+        if (confirmed) {
+          try {
+            const res = await fetch(`${apiUrl}/${id}`, {
+              method: "DELETE",
+              credentials: "include",
+            });
+
+            if (!res.ok) {
+              const errorData = await res.json();
+              throw new Error(errorData.message || "Failed to delete admin");
+            }
+
+            showToast("Admin Berhasil Dihapus", "success");
+            fetchAdmins();
+          } catch (err) {
+            console.error(err);
+            showToast(`Admin Gagal Dihapus: ${err.message}`, "error");
+          }
+        }
+      }
+
+      function editAdmin(id, full_name, phone_number) {
+        document.getElementById("admin_id").value = id;
+        document.getElementById("full_name").value = full_name;
+        document.getElementById("phone_number").value = phone_number;
+        document.getElementById("password").value = "";
+
+        // Reset password visibility when editing
+        const passwordInput = document.getElementById("password");
+        const toggleIcon = document.getElementById("passwordToggleIcon");
+        passwordInput.type = "password";
+        passwordInput.classList.remove("password-field");
+        toggleIcon.className = "fas fa-eye";
+
+        document.getElementById("formTitle").innerHTML =
+          '<i class="fas fa-user-edit"></i> Edit Admin';
+        document.getElementById("submitBtn").innerHTML =
+          '<i class="fas fa-save"></i> Update Admin';
+
+        showToast("Admin data loaded for editing", "info");
+      }
+
+      function resetForm() {
+        document.getElementById("adminForm").reset();
+        document.getElementById("admin_id").value = "";
+
+        // Reset password visibility when resetting form
+        const passwordInput = document.getElementById("password");
+        const toggleIcon = document.getElementById("passwordToggleIcon");
+        passwordInput.type = "password";
+        passwordInput.classList.remove("password-field");
+        toggleIcon.className = "fas fa-eye";
+
+        document.getElementById("formTitle").innerHTML =
+          '<i class="fas fa-user-plus"></i> Register New Admin';
+        document.getElementById("submitBtn").innerHTML =
+          '<i class="fas fa-plus-circle"></i> Register Admin';
+      }
+    </script>
+
+    <!-- Bootstrap Script -->
+    <script src="../../public/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript -->
+    <script type="module" src="../../public/js/design_app.js"></script>
+    <script type="module" src="../../public/js/users_app.js"></script>
+  </body>
+</html>

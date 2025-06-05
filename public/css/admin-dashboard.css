@@ -1,0 +1,228 @@
+/* * {
+  border: 1px solid black;
+} */
+
+/* ////////////////////////////////////////////////////////// */
+/* admin-dashboard.html Start */
+
+/* General */
+body,
+html {
+  font-family: "Poppins", sans-serif;
+  /* padding-top: 56px;
+  margin: 0;
+  padding: 0; */
+  background: linear-gradient(135deg, #0066ff, #00ccff);
+  min-height: 100vh;
+  padding-top: 23px;
+}
+
+/* Header & Section */
+.title-card {
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #0066ff, #00ccff);
+  color: #fff;
+  border-radius: 16px;
+  text-align: center;
+  margin-bottom: 30px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.title-card h1 {
+  font-weight: 700;
+  font-size: 1.75rem;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.title-card p {
+  color: #fff;
+  font-size: 1.5rem;
+  margin-bottom: 0;
+}
+
+h2.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+h3.section-title {
+  font-size: 1.5rem;
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.admin-container {
+  padding: 40px 20px;
+  max-width: 1000px;
+  margin: auto;
+}
+
+form {
+  background-color: #fff;
+  padding: 35px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  font-weight: 500;
+  margin-bottom: 7px;
+  display: block;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 20px;
+  font-size: 1rem;
+  border: 1px solid #ced4da;
+  border-radius: 10px;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #0066ff;
+  box-shadow: 0 0 8px rgba(0, 102, 255, 0.5);
+  outline: none;
+  transition: box-shadow 0.3s ease;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+#photoPreview {
+  margin-top: 10px;
+  max-width: 50%;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+#submitBtn,
+button[type="reset"] {
+  border-radius: 30px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  background-color: #0d6efd;
+  color: #fff;
+  transition: background-color 0.3s ease;
+}
+
+button[type="reset"] {
+  background-color: #dc3545;
+}
+
+#submitBtn:hover {
+  background-color: #0054d3;
+}
+
+button[type="reset"]:hover {
+  background-color: #b82c3a;
+}
+
+.list-section {
+  margin-top: 40px;
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.no-data {
+  text-align: center;
+  color: #999;
+  font-size: italic;
+}
+
+/* Daftar Kandidat */
+#adminCandidateList {
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* Tabel Kandidat */
+.candidate-table {
+  min-width: 800px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.candidate-table thead {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+.candidate-table th,
+.candidate-table td {
+  padding: 12px 16px;
+  vertical-align: middle;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.candidate-table th,
+.candidate-table td.number {
+  text-align: center;
+}
+
+.candidate-table tbody tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.candidate-table tbody tr:hover {
+  background-color: #e9f0ff;
+}
+
+.candidate-table img.thumbnail {
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+/* Thumbnail */
+.thumbnail {
+  width: 150px;
+  height: auto;
+}
+
+/* Button */
+.btn-primary,
+.btn-danger {
+  margin: 10px;
+  width: 85px;
+  height: 38px;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+  .navbar-nav {
+    padding: 1rem 0;
+  }
+}
+
+/* admin-dashboard.html End */
+/* ////////////////////////////////////////////////////////// */

@@ -1,0 +1,226 @@
+/* * {
+  border: 1px solid black;
+} */
+
+/* ////////////////////////////////////////////////////////// */
+/* index.html Start */
+
+/* General */
+body,
+html {
+  font-family: "Poppins", sans-serif;
+  padding-top: 56px;
+  margin: 0;
+  padding: 0;
+}
+
+/* Navbar */
+.navbar {
+  transition: all 0.3s ease;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+}
+
+.nav-link {
+  color: #333 !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  transition: 0.5s ease-in-out;
+  color: #0d6efd !important;
+}
+
+/* Login Button */
+.btn-login {
+  border: 2px solid #0d6efd;
+  padding: 6px 20px;
+  border-radius: 50px;
+  margin-left: 10px;
+  transition: all 0.3s ease;
+  color: #0d6efd !important;
+}
+
+.btn-login:hover {
+  background-color: #0d6efd;
+  color: #fff !important;
+}
+
+/* Home Section */
+#home {
+  padding: 40px 0;
+}
+
+/* Button */
+.btn-primary {
+  background: linear-gradient(to right, #0d6efd, #0056b3);
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(to right, #0056b3, #0d6efd);
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2);
+}
+
+/* About Section */
+#about {
+  padding: 80px 0;
+}
+
+#about h2 {
+  font-size: 2.2rem;
+}
+
+#about .card {
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+#about .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Footer */
+.footer {
+  font-size: 0.95rem;
+}
+
+.footer h5 {
+  font-size: 1.2rem;
+}
+
+.footer ul li a {
+  transition: color 0.3s ease;
+}
+
+.footer ul li a:hover {
+  color: #d5d5d5 !important;
+}
+
+/* Social Media Icons */
+.footer .bi {
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.footer a {
+  text-decoration: none;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+  .navbar-nav {
+    padding: 1rem 0;
+  }
+
+  .btn-login {
+    margin-left: 0;
+  }
+
+  #home {
+    text-align: center;
+    padding: 20px 0;
+  }
+
+  #home .row {
+    flex-direction: column-reverse;
+  }
+
+  #home img {
+    margin-top: 0;
+  }
+
+  #home .d-flex.gap-2 {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #home .btn {
+    width: 100%;
+    max-width: 220px;
+    margin-bottom: 10px;
+  }
+
+  .footer {
+    text-align: center;
+  }
+
+  .footer ul {
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  #home {
+    padding: 60px 15px;
+    text-align: center;
+  }
+
+  #home h1 {
+    font-size: 1.8rem;
+  }
+
+  #about {
+    padding: 60px 15px;
+  }
+
+  #about h2 {
+    font-size: 1.6rem;
+  }
+
+  #about .card {
+    margin-bottom: 20px;
+  }
+
+  #home img {
+    max-width: 80%;
+    height: auto;
+  }
+
+  .footer ul {
+    padding-left: 0;
+  }
+}
+
+/* index.html End */
+/* ////////////////////////////////////////////////////////// */
+
+/* ////////////////////////////////////////////////////////// */
+/* admin-home.html Start */
+
+/* Hero Section */
+.hero-section {
+  background: linear-gradient(135deg, #0066ff, #00ccff);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+}
+
+.hero-content .btn {
+  background-color: #ffc107;
+  color: #000;
+  padding: 12px 30px;
+  border-radius: 50px;
+  font-weight: 600;
+  transition: 0.3s ease;
+}
+
+.hero-content .btn:hover {
+  transform: scale(1.05);
+  background-color: #e0a800;
+  color: #fff;
+}
+
+/* admin-home.html End */
+/* ////////////////////////////////////////////////////////// */
