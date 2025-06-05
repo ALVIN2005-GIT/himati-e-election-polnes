@@ -418,7 +418,7 @@ export async function loadCandidates() {
       }
       // Fallback to placeholder
       else {
-        photoUrl = "../../public/assets/placeholder-image.jpg";
+        photoUrl = "/public/assets/placeholder-image.jpg";
       }
 
       const col = document.createElement("div");
@@ -433,7 +433,7 @@ export async function loadCandidates() {
       card.innerHTML = `
       <div class="candidate-number">${candidate.number || ""}</div>
       <div class="candidate-photo">
-        <img src="${photoUrl}" alt="Foto Kandidat" onerror="this.onerror=null; this.src='../../public/assets/placeholder-image.jpg';">
+        <img src="${photoUrl}" alt="Foto Kandidat" onerror="this.onerror=null; this.src='/public/assets/placeholder-image.jpg';">
       </div>
       <div class="candidate-info-simple">
         <div class="candidate-pair">
@@ -600,7 +600,7 @@ function showCandidateDetail(candidate, photoUrl) {
         <span class="close-modal" onclick="closeModal()">&times;</span>  
       </div>
       <div class="candidate-photo">
-        <img src="${photoUrl}" alt="Foto Kandidat" onerror="this.onerror=null; this.src='../../public/assets/placeholder-image.jpg';">
+        <img src="${photoUrl}" alt="Foto Kandidat" onerror="this.onerror=null; this.src='/public/assets/placeholder-image.jpg';">
       </div>
       <div class="candidate-info-detail">
         <div class="candidate-main-info">
@@ -707,7 +707,7 @@ export async function loadCandidatesAdmin() {
       }
       // Fallback to placeholder
       else {
-        photoUrl = "../../public/assets/placeholder-image.jpg";
+        photoUrl = "/public/assets/placeholder-image.jpg";
       }
 
       const vision = candidate.vision ?? "";
@@ -731,7 +731,7 @@ export async function loadCandidatesAdmin() {
             .join("")}
         </ol>
       </td>
-      <td><img src="${photoUrl}" alt="Foto" class="thumbnail" onerror="this.onerror=null; this.src='../../public/assets/placeholder-image.jpg';"></td>
+      <td><img src="${photoUrl}" alt="Foto" class="thumbnail" onerror="this.onerror=null; this.src='/public/assets/placeholder-image.jpg';"></td>
       <td>
         <button class="edit-btn btn btn-sm btn-primary" data-id="${
           candidate.id
@@ -824,7 +824,7 @@ async function handleEditCandidate(id) {
       }
       // Fallback to placeholder
       else {
-        photoUrl = "../../public/assets/placeholder-image.jpg";
+        photoUrl = "/public/assets/placeholder-image.jpg";
       }
 
       photoPreview.src = photoUrl;
@@ -833,7 +833,7 @@ async function handleEditCandidate(id) {
       // Add error handler for image
       photoPreview.onerror = function () {
         this.onerror = null; // Prevent infinite loop
-        this.src = "../../public/assets/placeholder-image.jpg";
+        this.src = "/public/assets/placeholder-image.jpg";
         console.error("Failed to load image:", photoUrl);
       };
     }

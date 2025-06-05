@@ -8,12 +8,12 @@ document.addEventListener("DOMContentLoaded", function () {
     window.location.pathname === "/"
   ) {
     // Load navbar
-    fetch("../public/components/navbar.html")
+    fetch("/public/components/navbar.html")
       .then((response) => response.text())
       .then((data) => document.body.insertAdjacentHTML("afterbegin", data));
 
     // Load footer
-    fetch("../public/components/footer.html")
+    fetch("/public/components/footer.html")
       .then((response) => response.text())
       .then((data) => document.body.insertAdjacentHTML("beforeend", data));
   } else if (
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
     window.location.pathname === "/"
   ) {
     // Load navbar
-    fetch("../../public/components/admin-navbar.html")
+    fetch("/public/components/admin-navbar.html")
       .then((response) => response.text())
       .then((data) => document.body.insertAdjacentHTML("afterbegin", data));
 

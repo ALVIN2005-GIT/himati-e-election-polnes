@@ -115,12 +115,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (user.role === "admin") {
         showToast(`Selamat Datang ${user.full_name}!` || "Admin!", "success");
         setTimeout(() => {
-          window.location.href = "/frontend/views/admin/admin-dashboard.html";
+          window.location.href = "/views/admin/admin-dashboard.html";
         }, 2000);
       } else if (user.role === "student") {
         showToast(`Selamat Datang ${user.full_name}`, "success");
         setTimeout(() => {
-          window.location.href = "/frontend/views/students/votes.html";
+          window.location.href = "/views/students/votes.html";
         }, 2000);
       } else {
         showToast("Salah User dan Tidak Ada", "error");
@@ -135,25 +135,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Daftar halaman yang butuh proteksi login
     const protectedPaths = [
-      "/frontend/views/admin/admin-dashboard.html",
-      "/frontend/views/admin/admin-crud.html",
-      "/frontend/views/admin/upload-file.html",
-      "/frontend/views/admin/generate-send-password.html",
-      "/frontend/views/admin/votes-result.html",
-      "/frontend/views/admin/data-recap.html",
-      "/frontend/views/admin/votes.html",
-      "/frontend/views/students/votes.html",
-      "/frontend/views/403.html",
-      "/frontend/views/403_1.html",
-      "/frontend/views/500.html",
+      "/views/admin/admin-dashboard.html",
+      "/views/admin/admin-crud.html",
+      "/views/admin/upload-file.html",
+      "/views/admin/generate-send-password.html",
+      "/views/admin/votes-result.html",
+      "/views/admin/data-recap.html",
+      "/views/admin/votes.html",
+      "/views/students/votes.html",
+      "/views/403.html",
+      "/views/403_1.html",
+      "/views/500.html",
     ];
 
     if (!userRes.success) {
       // Kalau belum login, redirect ke login
-      window.location.href = "/frontend/views/403_1.html";
+      window.location.href = "/views/403_1.html";
       if (protectedPaths.includes(path)) {
         setTimeout(() => {
-          window.location.href = "/frontend/views/403_1.html";
+          window.location.href = "/views/403_1.html";
         }, 3000); // 3 detik delay
       }
       return;
@@ -161,7 +161,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Kalau user role-nya tidak cocok dengan halaman
     if (path.includes("/admin/") && user.role !== "admin") {
-      window.location.href = "/frontend/views/403.html";
+      window.location.href = "/views/403.html";
     }
   }
 
