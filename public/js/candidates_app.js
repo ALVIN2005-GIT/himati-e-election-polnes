@@ -371,6 +371,7 @@ async function handleFormSubmit(e) {
 
     await loadCandidates(currentPeriod || null);
     await loadCandidatesAdmin(currentAdminPeriod || null);
+    await loadAdminCandidates(currentAdminPeriod || null);
   } catch (error) {
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
   }
@@ -481,6 +482,7 @@ async function populatePeriodSelector() {
             ? selectedPeriod
             : null;
         loadCandidates(periodToPass);
+        loadAdminCandidates(periodToPass);
 
         // Update header title
         const headerTitle = document.querySelector(".header-title");
@@ -495,6 +497,7 @@ async function populatePeriodSelector() {
     const initialPeriod =
       select.value && select.value.trim() !== "" ? select.value : null;
     loadCandidates(initialPeriod);
+    loadAdminCandidates(initialPeriod);
   } catch (error) {
     console.error("Error populating period selector:", error);
     populateEmptyPeriodSelector("periodSelect");
@@ -1071,6 +1074,7 @@ function populateEmptyPeriodSelector(selectId) {
 
       if (selectId === "periodSelect") {
         loadCandidates(periodToPass);
+        loadAdminCandidates(periodToPass);
 
         const headerTitle = document.querySelector(".header-title");
         if (headerTitle) {
@@ -1131,7 +1135,7 @@ export async function loadCandidatesAdmin(period = null) {
             <i class='bi bi-calendar-x'></i>
             <h3>Belum Ada Kandidat</h3>
             <p>Belum ada kandidat yang terdaftar untuk periode ${period}.</p>
-            <small>Anda dapat menambah kandidat baru menggunakan form di atas.</small>
+            <small>Anda dapat menambah kandidat baru menggunakan form di atas Atau Bisa Menunggu Tahun Depan.</small>
           </div>`;
       } else {
         noCandidateMsg = `
@@ -1358,6 +1362,7 @@ async function handleDeleteCandidate(id) {
 
     await loadCandidatesAdmin(currentAdminPeriod || null);
     await loadCandidates(currentPeriod || null);
+    await loadAdminCandidates(currentPeriod || null);
   } catch (error) {
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
   }
