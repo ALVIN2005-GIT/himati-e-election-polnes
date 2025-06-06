@@ -546,14 +546,14 @@ async function handleVoteClick(event) {
 
       // Kembalikan tombol
       event.target.disabled = false;
-      event.target.innerHTML = <i class="bi bi-crosshair me-1"></i>;
+      event.target.innerHTML = '<i class="bi bi-crosshair me-1"></i>';
       event.target.textContent = originalText;
     }
   } catch (error) {
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
 
     // Kembalikan tombol
-    event.target.innerHTML = <i class="bi bi-crosshair me-1"></i>;
+    event.target.innerHTML = '<i class="bi bi-crosshair me-1"></i>';
     event.target.textContent = originalText;
   }
 }
