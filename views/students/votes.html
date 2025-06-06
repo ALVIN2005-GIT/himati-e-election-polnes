@@ -168,39 +168,5 @@
 
     <!-- JavaScript -->
     <script type="module" src="/public/js/candidates_app.js"></script>
-    <script type="module">
-      import { initializeApp } from "/public/js/candidates_app.js";
-
-      document.addEventListener("DOMContentLoaded", () => {
-        initializeApp();
-      });
-
-      function showMessage(type, message) {
-        console.log(`${type.toUpperCase()}: ${message}`);
-
-        let messageEl = document.getElementById("messageContainer");
-        if (!messageEl) {
-          messageEl = document.createElement("div");
-          messageEl.id = "messageContainer";
-          messageEl.className = "message-container";
-          document.body.appendChild(messageEl);
-        }
-
-        const alert = document.createElement("div");
-        alert.className = `alert alert-${type}`;
-        alert.textContent = message;
-
-        messageEl.appendChild(alert);
-
-        setTimeout(() => {
-          if (alert && alert.parentNode) {
-            alert.remove();
-            if (messageEl.children.length === 0) {
-              messageEl.remove();
-            }
-          }
-        }, 5000);
-      }
-    </script>
   </body>
 </html>
