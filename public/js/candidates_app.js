@@ -621,7 +621,33 @@ export async function loadCandidates(period = null) {
     });
 
     container.appendChild(candidatesGrid);
+    // Add the modal HTML to the page
+    if (!document.getElementById("candidateDetailModal")) {
+      const modalHTML = `
+    <div id="candidateDetailModal" class="modal">
+      <div class="modal-content">
+        <div id="modalContent"></div>
+        <button class="modal-close-btn" onclick="closeModal()">Tutup</button>
+      </div>
+    </div>
+  `;
+      document.body.insertAdjacentHTML("beforeend", modalHTML);
 
+      document.addEventListener("click", function (event) {
+        const modal = document.getElementById("candidateDetailModal");
+        const modalContent = document.querySelector(".modal-content");
+
+        // Jika modal terbuka dan klik terjadi di luar modalContent
+        if (
+          modal &&
+          modal.style.display === "block" &&
+          !modalContent.contains(event.target) &&
+          !event.target.closest(".candidate-photo") // Cegah dari penutup modal saat klik gambar
+        ) {
+          closeModal();
+        }
+      });
+    }
     // Add event listeners (tetap sama seperti sebelumnya)
     const candidatePhotos = container.querySelectorAll(".candidate-photo img");
     candidatePhotos.forEach((img, index) => {
@@ -767,6 +793,33 @@ export async function loadAdminCandidates(period = null) {
 
     container.appendChild(candidatesGrid);
 
+    // Add the modal HTML to the page
+    if (!document.getElementById("candidateDetailModal")) {
+      const modalHTML = `
+        <div id="candidateDetailModal" class="modal">
+          <div class="modal-content">
+            <div id="modalContent"></div>
+            <button class="modal-close-btn" onclick="closeModal()">Tutup</button>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+      document.addEventListener("click", function (event) {
+        const modal = document.getElementById("candidateDetailModal");
+        const modalContent = document.querySelector(".modal-content");
+
+        // Jika modal terbuka dan klik terjadi di luar modalContent
+        if (
+          modal &&
+          modal.style.display === "block" &&
+          !modalContent.contains(event.target) &&
+          !event.target.closest(".candidate-photo") // Cegah dari penutup modal saat klik gambar
+        ) {
+          closeModal();
+        }
+      });
+    }
     // Add event listeners (tetap sama seperti sebelumnya)
     const candidatePhotos = container.querySelectorAll(".candidate-photo img");
     candidatePhotos.forEach((img, index) => {
