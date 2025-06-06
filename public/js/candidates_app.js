@@ -117,7 +117,7 @@ function showConfirmToast(message) {
 }
 
 // ======================= INITIALIZE APP =======================
-async function initializeApp() {
+export async function initializeApp() {
   // Load candidates for public view
   // Load candidates for public view
   const publicContainer = document.getElementById("candidateList");
