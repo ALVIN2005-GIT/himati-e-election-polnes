@@ -28,37 +28,27 @@
     <link rel="stylesheet" href="/public/css/page.css" />
     <style>
       .period-selector-container {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
-        padding: 20px;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
       }
 
-      .period-selector-container .form-label {
-        color: rgb(0, 0, 0);
+      .period-selector-container label {
         font-weight: 500;
-        margin-bottom: 10px;
-      }
-
-      .period-selector-container .form-select {
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.9);
         color: #333;
-        font-weight: 500;
-        transition: all 0.3s ease;
+        margin: 0;
       }
 
-      .period-selector-container .form-select:focus {
+      #periodSelect {
+        border-radius: 8px;
+        border: 2px solid #e0e0e0;
+        transition: border-color 0.3s ease;
+      }
+
+      #periodSelect:focus {
         border-color: #007bff;
         box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        background: white;
-      }
-
-      .period-selector-container .form-select option {
-        background: white;
-        color: #333;
       }
 
       .time-critical {
