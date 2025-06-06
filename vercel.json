@@ -13,6 +13,5 @@
     { "src": "/students/(.*)", "dest": "/views/students/$1" },
     { "src": "/login.html", "dest": "/views/login.html" },
     { "src": "/(.*)", "dest": "/$1" }
-  ],
-  "errorPage": "/404.html"
+  ]
 }
