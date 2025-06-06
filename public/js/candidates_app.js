@@ -529,10 +529,14 @@ async function handleVoteClick(event) {
 
   // 🔒 Lock tombol agar tidak bisa diklik lagi
   event.target.disabled = true;
-  const targetIcons = (event.target.innerHTML =
-    '<i class="bi bi-crosshair me-1"></i>');
+
+  // 💾 Simpan konten asli tombol (dengan icon)
+  const originalHTML = event.target.innerHTML;
   const originalText = event.target.textContent;
-  event.target.textContent = "Mencoblos...";
+
+  // 🔄 Ubah tampilan tombol saat loading
+  event.target.innerHTML =
+    '<i class="bi bi-hourglass-split me-1"></i> Mencoblos...';
 
   try {
     // 🚀 Kirim vote ke API
@@ -541,21 +545,22 @@ async function handleVoteClick(event) {
     if (response.success) {
       // ✅ Change the button appearance to show voted state
       showToast("Vote Telah berhasil", "success");
-      event.target.textContent = "✓ Tercoblos";
+      event.target.innerHTML =
+        '<i class="bi bi-check-circle me-1"></i> Tercoblos';
       event.target.classList.add("voted");
     } else {
       showToast(`Vote gagal : ${response.message}`, "error");
 
-      // Kembalikan tombol
+      // 🔄 Kembalikan tombol ke keadaan semula (dengan icon)
       event.target.disabled = false;
-      event.target.textContent = targetIcons + originalText;
+      event.target.innerHTML = originalHTML;
     }
   } catch (error) {
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
 
-    // Kembalikan tombol
+    // 🔄 Kembalikan tombol ke keadaan semula (dengan icon)
     event.target.disabled = false;
-    event.target.textContent = targetIcons + originalText;
+    event.target.innerHTML = originalHTML;
   }
 }
 
