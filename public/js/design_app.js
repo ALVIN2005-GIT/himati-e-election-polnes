@@ -31,11 +31,6 @@ document.addEventListener("DOMContentLoaded", function () {
     fetch("/public/components/admin-navbar.html")
       .then((response) => response.text())
       .then((data) => document.body.insertAdjacentHTML("afterbegin", data));
-
-    // Load footer
-    // fetch("../../public/components/admin-footer.html")
-    //   .then((response) => response.text())
-    //   .then((data) => document.body.insertAdjacentHTML("beforeend", data));
   }
   // 🔹 Navbar scroll effect
   window.addEventListener("scroll", function () {

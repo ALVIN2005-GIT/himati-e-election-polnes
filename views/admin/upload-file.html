@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,7 +8,7 @@
       type="image/x-icon"
       href="/public/assets/himatipolnes.jpg"
     />
-    <title>Upload CSV User | HIMA TI e-Election</title>
+    <title>Data Recap | HIMA TI e-Election</title>
     <!-- Fonts -->
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Quicksand:wght@300..700&display=swap"
@@ -23,95 +23,110 @@
     />
 
     <!-- Custom CSS -->
+    <link rel="stylesheet" href="/public/css/admin-crud.css" />
     <link rel="stylesheet" href="/public/css/admin.css" />
     <link rel="stylesheet" href="/public/css/admin-navbar.css" />
     <link rel="stylesheet" href="/public/css/toast.css" />
-  </head>
 
+    <style>
+      /* Validation result colors */
+      .result-box .success {
+        color: #28a745;
+        font-weight: 500;
+      }
+
+      .result-box .error {
+        color: #dc3545;
+        font-weight: 500;
+      }
+
+      .result-box .warning {
+        color: #ffc107;
+        font-weight: 500;
+      }
+
+      .result-box .info {
+        color: #17a2b8;
+        font-weight: 500;
+      }
+
+      .result-box ul {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      .result-box li {
+        padding: 5px 0;
+        border-left: 3px solid transparent;
+        padding-left: 10px;
+        margin-bottom: 5px;
+      }
+
+      .result-box li.success {
+        border-left-color: #28a745;
+        background-color: rgba(40, 167, 69, 0.1);
+      }
+
+      .result-box li.error {
+        border-left-color: #dc3545;
+        background-color: rgba(220, 53, 69, 0.1);
+      }
+
+      .result-box li.warning {
+        border-left-color: #ffc107;
+        background-color: rgba(255, 193, 7, 0.1);
+      }
+
+      .result-box li.info {
+        border-left-color: #17a2b8;
+        background-color: rgba(23, 162, 184, 0.1);
+      }
+    </style>
+  </head>
   <body>
     <!-- Navbar akan di-load otomatis -->
 
-    <!-- Container -->
     <div class="container py-4">
       <div class="row g-4 justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-6">
           <!-- Title Card -->
           <header class="title-card">
-            <h1><i class="bi bi-upload me-1"></i>Upload Data Pemilih</h1>
-            <!-- <p class="text-muted">HIMA TI e-Election System</p> -->
+            <h1><i class="bi bi-bar-chart-fill me-1"></i>Data Recap</h1>
           </header>
 
-          <!-- Upload Card -->
-          <div class="generate-card shadow-sm">
-            <div class="card-body">
-              <h4 class="card-title mb-3">
-                <i class="bi bi-upload me-1"></i>Upload CSV Data
-              </h4>
-              <p>
-                Silakan upload data pemilih dalam format file:
-                <strong>.csv</strong>
-                <i class="bi bi-filetype-csv"></i>
-              </p>
+          <!-- Generate Recap Section -->
+          <div class="generate-card">
+            <h4>
+              <i class="bi bi-bar-chart-fill me-1"></i>Rekap Data Mahasiswa
+              Pemilih
+            </h4>
+            <p>
+              <i class="bi bi-info-circle me-1"></i>
+              List rekapitulasi Mahasiswa yang telah memilik calon kandidat HIMA
+              TI
+            </p>
 
-              <!-- Penjelasan format CSV -->
-              <div class="alert alert-info">
-                <h5>
-                  <i class="bi bi-file-earmark-text-fill"></i> Format CSV yang
-                  Diperlukan
-                </h5>
-                <p>Urutan kolom wajib sebagai berikut:</p>
-                <pre><code>NIM,Full Name,Study Program,Phone Number</code></pre>
-                <ul>
-                  <li>
-                    <strong>NIM</strong>: Nomor Induk Mahasiswa (contoh:
-                    210411100001)
-                  </li>
-                  <li><strong>Full Name</strong>: Nama lengkap mahasiswa</li>
-                  <li><strong>Study Program</strong>: Nama program studi</li>
-                  <li><strong>Phone Number</strong>: Nomor HP aktif</li>
-                </ul>
-                <p><strong>Contoh isi file CSV:</strong></p>
-                <pre>
-210411100001,Andi Saputra,Teknik Informatika,081234567890
-210411100002,Budi Santoso,Sistem Informasi,081298765432
-                </pre>
-              </div>
-
-              <!-- Upload Form -->
-              <form
-                id="csvUploadForm"
-                class="upload-section"
-                enctype="multipart/form-data"
+            <div class="form-group">
+              <input
+                class="mb-3"
+                type="text"
+                id="yearInput"
+                placeholder="Misalnya (2025)"
+                maxlength="4"
+              />
+              <button
+                id="generateRecap"
+                class="btn btn-primary w-100 mb-3"
+                onclick="handleDownload()"
               >
-                <div class="mb-3">
-                  <label for="csvFile" class="form-label"
-                    ><i class="bi bi-upload me-1"></i>Pilih File CSV:</label
-                  >
-                  <input
-                    type="file"
-                    class="form-control"
-                    id="csvFile"
-                    accept=".csv"
-                    required
-                  />
-                </div>
-                <div class="text-center">
-                  <button type="submit" class="btn btn-primary">
-                    Upload <i class="bi bi-upload"></i>
-                  </button>
-                </div>
-              </form>
-
-              <!-- Result Box -->
-              <div class="mt-4">
-                <label for="result" class="form-label"
-                  ><i class="bi bi-code-slash me-1"></i>Hasil:</label
-                >
-                <pre
-                  id="result"
-                  class="bg-light p-3 border rounded"
-                  style="max-height: 300px; overflow: auto"
-                ></pre>
+                <i class="bi bi-download me-2"></i>Download Data Rekapitulasi
+                Disini
+              </button>
+            </div>
+            <div class="result-section">
+              <p class="result-label">Hasil:</p>
+              <div class="result-box">
+                <ul id="generatedList" class="mb-0"></ul>
               </div>
             </div>
           </div>
@@ -133,83 +148,16 @@
     <!-- Bootstrap Script -->
     <script src="/public/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Upload CSV Script -->
-    <script>
-      document
-        .getElementById("csvUploadForm")
-        .addEventListener("submit", async function (e) {
-          e.preventDefault();
+    <!-- JavaScript -->
 
-          const fileInput = document.getElementById("csvFile");
-          const file = fileInput.files[0];
-          const resultBox = document.getElementById("result");
+    <script type="module" src="/public/js/users_app.js"></script>
+    <script type="module" src="/public/js/design_app.js"></script>
 
-          if (!file) {
-            showToast("Harap pilih file CSV!", "error");
-            resultBox.textContent = "";
-            return;
-          }
-
-          const formData = new FormData();
-          formData.append("file", file);
-
-          resultBox.textContent = "⏳ Mengupload...";
-
-          try {
-            const response = await fetch(
-              "https://api-hima-ti-e-election.sgp.dom.my.id/api/users/bulk",
-              {
-                method: "POST",
-                body: formData,
-                credentials: "include",
-              }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-              throw new Error(data.error.message || "Upload gagal");
-              showToast("Upload gagal: " + data.error.message, "error");
-            }
-
-            let message = `✅ Upload berhasil: user berhasil diinput.\n`;
-            if (data.error_rows?.length) {
-              message += `❌ Baris gagal: ${
-                data.error_rows.length
-              }\n\n${JSON.stringify(data.error_rows, null, 2)}`;
-            }
-
-            showToast("Upload berhasil!", "success");
-            resultBox.textContent = message;
-          } catch (error) {
-            resultBox.textContent = `🚨 Error: ${error.message}`;
-            showToast("Gagal upload file: " + error.message, "error");
-          }
-        });
-
-      function showToast(message, type = "success") {
-        // If toast is locked, don't show new toasts
-        if (window._toastLocked) return;
-
-        const toast = document.getElementById("toast");
-        if (!toast) return;
-
-        toast.className = `toast ${type} show`;
-        toast.textContent = message;
-
-        setTimeout(() => {
-          toast.classList.remove("show");
-        }, 3000);
-      }
-    </script>
-
-    <!-- Bootstrap Script -->
-    <script src="/public/js/bootstrap.bundle.min.js"></script>
+    <!-- Load SheetJS library -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
     <!-- Custom Scripts -->
-
-    <!-- Optional Scripts -->
-    <script type="module" src="/public/js/design_app.js"></script>
-    <script type="module" src="/public/js/users_app.js"></script>
+    <script type="module" src="/public/js/data_recap_api.js"></script>
+    <script type="module" src="/public/js/data_recap_app.js"></script>
   </body>
 </html>
