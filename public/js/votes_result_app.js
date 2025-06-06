@@ -167,7 +167,7 @@ export function setupWebSocket() {
   }
 
   wsConnection = new WebSocket(
-    "ws://api-hima-ti-e-election.sgp.dom.my.id/ws/votes"
+    "wss://api-hima-ti-e-election.sgp.dom.my.id/ws/votes"
   );
 
   wsConnection.onopen = () => {
