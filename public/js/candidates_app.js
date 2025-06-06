@@ -372,10 +372,18 @@ async function handleFormSubmit(e) {
   }
 }
 
-// ======================= LOAD KANDIDAT (UNTUK PUBLIC VIEW) =======================
+// ======================= PERBAIKAN 2: PERSISTENCE SELECTED PERIOD =======================
 
-// Tambahkan fungsi baru untuk mengisi dropdown periode
-// ======================= POPULATE PERIOD SELECTOR (DIPERBAIKI) =======================
+// PERBAIKAN: Fungsi untuk save/load selected period
+function saveSelectedPeriod(selectId, period) {
+  // Gunakan sessionStorage untuk persistence dalam session
+  sessionStorage.setItem(`selected_period_${selectId}`, period || "");
+}
+
+function loadSelectedPeriod(selectId) {
+  return sessionStorage.getItem(`selected_period_${selectId}`) || "";
+}
+// PERBAIKAN: Update populatePeriodSelector dengan persistence
 async function populatePeriodSelector() {
   try {
     const res = await getAllCandidates(); // Ambil SEMUA kandidat tanpa filter
@@ -387,21 +395,19 @@ async function populatePeriodSelector() {
       ...new Set(
         res.data.map((candidate) => {
           const year = new Date(candidate.created_at).getFullYear();
-          return year + 1; // Election year is next year
+          return year + 1;
         })
       ),
-    ].sort((a, b) => b - a); // Sort descending (newest first)
+    ].sort((a, b) => b - a);
 
     const select = document.getElementById("periodSelect");
     if (!select) return;
 
-    // Simpan nilai yang sedang dipilih
-    const currentValue = select.value;
+    // PERBAIKAN: Load saved period
+    const savedPeriod = loadSelectedPeriod("periodSelect");
 
-    // Clear existing options (keep "Semua Periode")
     select.innerHTML = '<option value="">Semua Periode</option>';
 
-    // Add period options
     periods.forEach((period) => {
       const option = document.createElement("option");
       option.value = period;
@@ -409,29 +415,34 @@ async function populatePeriodSelector() {
       select.appendChild(option);
     });
 
-    // Restore nilai yang dipilih sebelumnya, atau pilih tahun saat ini
-    if (currentValue && periods.includes(parseInt(currentValue))) {
-      select.value = currentValue;
+    // PERBAIKAN: Set saved period atau default
+    if (savedPeriod && periods.includes(parseInt(savedPeriod))) {
+      select.value = savedPeriod;
+    } else if (savedPeriod === "") {
+      select.value = "";
     } else {
       const currentYear = new Date().getFullYear();
       const defaultPeriod = currentYear + 1;
       if (periods.includes(defaultPeriod)) {
         select.value = defaultPeriod;
+        saveSelectedPeriod("periodSelect", defaultPeriod);
       }
     }
 
-    // PENTING: Jangan tambahkan event listener berulang kali!
-    // Cek apakah sudah ada event listener
+    // Event listener dengan persistence
     if (!select.hasAttribute("data-listener-added")) {
       select.setAttribute("data-listener-added", "true");
 
       select.addEventListener("change", (e) => {
         const selectedPeriod = e.target.value;
+
+        // PERBAIKAN: Save selected period
+        saveSelectedPeriod("periodSelect", selectedPeriod);
+
         const periodToPass =
           selectedPeriod && selectedPeriod.trim() !== ""
             ? selectedPeriod
             : null;
-
         loadCandidates(periodToPass);
 
         // Update header title
@@ -443,28 +454,45 @@ async function populatePeriodSelector() {
         }
       });
     }
+
+    // PERBAIKAN: Load candidates dengan saved period saat pertama kali
+    const initialPeriod =
+      select.value && select.value.trim() !== "" ? select.value : null;
+    loadCandidates(initialPeriod);
   } catch (error) {
     console.error("Error populating period selector:", error);
   }
 }
 
+// ======================= PERBAIKAN 1: FILTER PERIOD DI LOAD FUNCTIONS =======================
+
 export async function loadCandidates(period = null) {
   const container = document.getElementById("candidateList");
-
   if (!container) return;
 
   try {
-    const res = await getAllCandidates(period);
+    // PERBAIKAN: Ambil SEMUA data dulu, lalu filter di frontend
+    const res = await getAllCandidates(); // Tanpa parameter period
 
     if (!res.success || !res.data || res.data == null) {
       showToast("Gagal mengambil data kandidat", "error");
       return;
     }
 
+    let filteredData = res.data;
+
+    // PERBAIKAN: Filter berdasarkan period di frontend
+    if (period && period.trim() !== "") {
+      filteredData = res.data.filter((candidate) => {
+        const candidateYear = new Date(candidate.created_at).getFullYear() + 1;
+        return candidateYear.toString() === period.toString();
+      });
+    }
+
     container.innerHTML = "";
 
-    if (res.data.length === 0) {
-      // Perbaikan: cek apakah period kosong atau null
+    // PERBAIKAN: Pesan yang lebih spesifik
+    if (filteredData.length === 0) {
       const noCandidateMsg =
         period && period.trim() !== ""
           ? `Tidak ada kandidat untuk periode ${period}.`
@@ -474,32 +502,26 @@ export async function loadCandidates(period = null) {
     }
 
     // Sort candidates by number before displaying
-    const sortedCandidates = [...res.data].sort((a, b) => a.number - b.number);
+    const sortedCandidates = [...filteredData].sort(
+      (a, b) => a.number - b.number
+    );
 
-    // Create candidate cards for public view
+    // Sisa kode rendering tetap sama...
     const candidatesGrid = document.createElement("div");
-    // candidatesGrid.className = "candidates-grid";
     candidatesGrid.className = "row g-4 justify-content-center";
 
     sortedCandidates.forEach((candidate) => {
       // Proper image URL handling
       let photoUrl;
       if (candidate.photo_url) {
-        // If photo_url already contains the full URL
         if (candidate.photo_url.startsWith("http")) {
           photoUrl = candidate.photo_url;
-        }
-        // If photo_url is a key/path
-        else {
+        } else {
           photoUrl = `${BASE_PUBLIC_FILE_URL}/${candidate.photo_url}`;
         }
-      }
-      // If photo_key exists use that
-      else if (candidate.photo_key) {
+      } else if (candidate.photo_key) {
         photoUrl = `${BASE_PUBLIC_FILE_URL}/${candidate.photo_key}`;
-      }
-      // Fallback to placeholder
-      else {
+      } else {
         photoUrl = "/public/assets/placeholder-image.jpg";
       }
 
@@ -541,35 +563,7 @@ export async function loadCandidates(period = null) {
 
     container.appendChild(candidatesGrid);
 
-    // Add the modal HTML to the page
-    if (!document.getElementById("candidateDetailModal")) {
-      const modalHTML = `
-        <div id="candidateDetailModal" class="modal">
-          <div class="modal-content">
-            <div id="modalContent"></div>
-            <button class="modal-close-btn" onclick="closeModal()">Tutup</button>
-          </div>
-        </div>
-      `;
-      document.body.insertAdjacentHTML("beforeend", modalHTML);
-
-      document.addEventListener("click", function (event) {
-        const modal = document.getElementById("candidateDetailModal");
-        const modalContent = document.querySelector(".modal-content");
-
-        // Jika modal terbuka dan klik terjadi di luar modalContent
-        if (
-          modal &&
-          modal.style.display === "block" &&
-          !modalContent.contains(event.target) &&
-          !event.target.closest(".candidate-photo") // Cegah dari penutup modal saat klik gambar
-        ) {
-          closeModal();
-        }
-      });
-    }
-
-    // Add event listeners for candidate cards and vote buttons
+    // Add event listeners
     const candidatePhotos = container.querySelectorAll(".candidate-photo img");
     candidatePhotos.forEach((img, index) => {
       img.addEventListener("click", () => {
@@ -581,11 +575,12 @@ export async function loadCandidates(period = null) {
     voteButtons.forEach((button) => {
       button.addEventListener("click", handleVoteClick);
     });
-    // Perbaikan toast message
+
+    // Success message
     const successMsg =
       period && period.trim() !== ""
-        ? `Data kandidat periode ${period} berhasil dimuat`
-        : "Data kandidat berhasil dimuat";
+        ? `Data kandidat periode ${period} berhasil dimuat (${filteredData.length} kandidat)`
+        : `Data kandidat berhasil dimuat (${filteredData.length} kandidat)`;
     showToast(successMsg, "success");
   } catch (error) {
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
@@ -732,9 +727,10 @@ function closeModal() {
 }
 
 // ======================= POPULATE ADMIN PERIOD SELECTOR =======================
+// PERBAIKAN: Update populateAdminPeriodSelector dengan persistence
 async function populateAdminPeriodSelector() {
   try {
-    const res = await getAllCandidates(); // Ambil SEMUA kandidat tanpa filter
+    const res = await getAllCandidates();
 
     if (!res.success || !res.data) return;
 
@@ -750,8 +746,8 @@ async function populateAdminPeriodSelector() {
     const select = document.getElementById("adminPeriodSelect");
     if (!select) return;
 
-    // Simpan nilai yang sedang dipilih
-    const currentValue = select.value;
+    // PERBAIKAN: Load saved period
+    const savedPeriod = loadSelectedPeriod("adminPeriodSelect");
 
     select.innerHTML = '<option value="">Semua Periode</option>';
 
@@ -762,28 +758,33 @@ async function populateAdminPeriodSelector() {
       select.appendChild(option);
     });
 
-    // Restore nilai yang dipilih sebelumnya
-    if (currentValue && periods.includes(parseInt(currentValue))) {
-      select.value = currentValue;
+    // PERBAIKAN: Set saved period atau default
+    if (savedPeriod && periods.includes(parseInt(savedPeriod))) {
+      select.value = savedPeriod;
+    } else if (savedPeriod === "") {
+      select.value = "";
     } else {
       const currentYear = new Date().getFullYear();
       const defaultPeriod = currentYear + 1;
       if (periods.includes(defaultPeriod)) {
         select.value = defaultPeriod;
+        saveSelectedPeriod("adminPeriodSelect", defaultPeriod);
       }
     }
 
-    // PENTING: Jangan tambahkan event listener berulang kali!
     if (!select.hasAttribute("data-listener-added")) {
       select.setAttribute("data-listener-added", "true");
 
       select.addEventListener("change", (e) => {
         const selectedPeriod = e.target.value;
+
+        // PERBAIKAN: Save selected period
+        saveSelectedPeriod("adminPeriodSelect", selectedPeriod);
+
         const periodToPass =
           selectedPeriod && selectedPeriod.trim() !== ""
             ? selectedPeriod
             : null;
-
         loadCandidatesAdmin(periodToPass);
 
         const headerTitle = document.querySelector(".title-card h1 span");
@@ -793,11 +794,15 @@ async function populateAdminPeriodSelector() {
         }
       });
     }
+
+    // PERBAIKAN: Load candidates dengan saved period saat pertama kali
+    const initialPeriod =
+      select.value && select.value.trim() !== "" ? select.value : null;
+    loadCandidatesAdmin(initialPeriod);
   } catch (error) {
     console.error("Error populating admin period selector:", error);
   }
 }
-
 // ======================= LOAD KANDIDAT (UNTUK ADMIN) =======================
 // ======================= LOAD KANDIDAT (UNTUK ADMIN) =======================
 export async function loadCandidatesAdmin(period = null) {
@@ -807,18 +812,27 @@ export async function loadCandidatesAdmin(period = null) {
   try {
     showToast("Memuat data kandidat untuk admin...", "info");
 
-    // Pass period parameter to getAllCandidates
-    const res = await getAllCandidates(period);
+    // PERBAIKAN: Ambil SEMUA data dulu, lalu filter di frontend
+    const res = await getAllCandidates(); // Tanpa parameter period
 
     if (!res.success || res.data == null) {
       showToast("Gagal mengambil data kandidat", "error");
       return;
     }
 
+    let filteredData = res.data;
+
+    // PERBAIKAN: Filter berdasarkan period di frontend
+    if (period && period.trim() !== "") {
+      filteredData = res.data.filter((candidate) => {
+        const candidateYear = new Date(candidate.created_at).getFullYear() + 1;
+        return candidateYear.toString() === period.toString();
+      });
+    }
+
     container.innerHTML = "";
 
-    if (res.data.length === 0) {
-      // Show appropriate message based on period filter
+    if (filteredData.length === 0) {
       const noCandidateMsg =
         period && period.trim() !== ""
           ? `Tidak ada kandidat untuk periode ${period}.`
@@ -828,8 +842,11 @@ export async function loadCandidatesAdmin(period = null) {
     }
 
     // Sort candidates by number before displaying
-    const sortedCandidates = [...res.data].sort((a, b) => a.number - b.number);
+    const sortedCandidates = [...filteredData].sort(
+      (a, b) => a.number - b.number
+    );
 
+    // Sisa kode table rendering tetap sama...
     const table = document.createElement("table");
     table.className = "candidate-table";
     table.innerHTML = `
@@ -849,29 +866,20 @@ export async function loadCandidatesAdmin(period = null) {
 
     const tbody = table.querySelector("tbody");
     sortedCandidates.forEach((candidate) => {
-      // Proper image URL handling
       let photoUrl;
       if (candidate.photo_url) {
-        // If photo_url already contains the full URL
         if (candidate.photo_url.startsWith("http")) {
           photoUrl = candidate.photo_url;
-        }
-        // If photo_url is a key/path
-        else {
+        } else {
           photoUrl = `${BASE_PUBLIC_FILE_URL}/${candidate.photo_url}`;
         }
-      }
-      // If photo_key exists use that
-      else if (candidate.photo_key) {
+      } else if (candidate.photo_key) {
         photoUrl = `${BASE_PUBLIC_FILE_URL}/${candidate.photo_key}`;
-      }
-      // Fallback to placeholder
-      else {
+      } else {
         photoUrl = "/public/assets/placeholder-image.jpg";
       }
 
       const vision = candidate.vision ?? "";
-      const mission = candidate.mission ?? "";
       const row = document.createElement("tr");
       row.innerHTML = `
       <td class="number">${candidate.number ?? ""}</td>
@@ -906,7 +914,7 @@ export async function loadCandidatesAdmin(period = null) {
 
     container.appendChild(table);
 
-    // Add event listeners for edit and delete buttons
+    // Add event listeners
     container.querySelectorAll(".edit-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = btn.dataset.id;
@@ -921,11 +929,10 @@ export async function loadCandidatesAdmin(period = null) {
       });
     });
 
-    // Show success message with period info
     const successMsg =
       period && period.trim() !== ""
-        ? `Data kandidat admin periode ${period} berhasil dimuat`
-        : "Data kandidat admin berhasil dimuat";
+        ? `Data kandidat admin periode ${period} berhasil dimuat (${filteredData.length} kandidat)`
+        : `Data kandidat admin berhasil dimuat (${filteredData.length} kandidat)`;
     showToast(successMsg, "success");
   } catch (error) {
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
