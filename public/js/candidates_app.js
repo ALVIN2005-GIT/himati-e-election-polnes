@@ -376,13 +376,15 @@ async function handleFormSubmit(e) {
  * Generate array of periods starting from 2026 for the next 10 years
  * @returns {Array} Array of years from 2026 to 2035
  */
+// 1. Update fungsi generateDynamicPeriods untuk format "YYYY/YYYY+1"
 function generateDynamicPeriods() {
   const startYear = 2026;
   const yearCount = 10;
   const periods = [];
 
   for (let i = 0; i < yearCount; i++) {
-    periods.push(startYear + i);
+    const year = startYear + i;
+    periods.push(`${year}/${year + 1}`);
   }
 
   return periods;
@@ -399,14 +401,12 @@ function saveSelectedPeriod(selectId, period) {
 function loadSelectedPeriod(selectId) {
   return sessionStorage.getItem(`selected_period_${selectId}`) || "";
 }
-// PERBAIKAN: Update populatePeriodSelector dengan persistence
-// ======================= UPDATED POPULATE PERIOD SELECTOR =======================
+// 2. Update populatePeriodSelector - bagian extract existing periods
 async function populatePeriodSelector() {
   try {
-    const res = await getAllCandidates(); // Ambil SEMUA kandidat tanpa filter
+    const res = await getAllCandidates();
 
     if (!res.success || !res.data) {
-      // Jika tidak ada data kandidat, tetap tampilkan periode dinamis
       populateEmptyPeriodSelector("periodSelect");
       return;
     }
@@ -416,39 +416,36 @@ async function populatePeriodSelector() {
       ...new Set(
         res.data.map((candidate) => {
           const year = new Date(candidate.created_at).getFullYear();
-          return year + 1;
+          const nextYear = year + 1;
+          return `${nextYear}/${nextYear + 1}`;
         })
       ),
     ];
 
-    // Generate dynamic periods (2026-2035)
+    // Generate dynamic periods (2026/2027 - 2035/2036)
     const dynamicPeriods = generateDynamicPeriods();
 
     // Gabungkan existing periods dengan dynamic periods, lalu sort
     const allPeriods = [
       ...new Set([...existingPeriods, ...dynamicPeriods]),
-    ].sort((a, b) => a - b);
+    ].sort();
 
     const select = document.getElementById("periodSelect");
     if (!select) return;
 
-    // Load saved period
     const savedPeriod = loadSelectedPeriod("periodSelect");
 
-    // Clear dan populate options
     select.innerHTML = '<option value="">Semua Periode</option>';
 
     allPeriods.forEach((period) => {
       const option = document.createElement("option");
       option.value = period;
 
-      // Tandai periode yang tidak memiliki kandidat
       const hasCandidates = existingPeriods.includes(period);
       option.textContent = hasCandidates
-        ? `${period}`
+        ? period
         : `${period} (Belum ada kandidat)`;
 
-      // Tambahkan class untuk styling jika diperlukan
       if (!hasCandidates) {
         option.className = "no-candidates";
       }
@@ -456,30 +453,23 @@ async function populatePeriodSelector() {
       select.appendChild(option);
     });
 
-    // Tambahkan scroll styling ke select
-    select.style.maxHeight = "200px";
-    select.style.overflowY = "auto";
-
-    // Set saved period atau default
-    if (savedPeriod && allPeriods.includes(parseInt(savedPeriod))) {
+    // Set default period
+    if (savedPeriod && allPeriods.includes(savedPeriod)) {
       select.value = savedPeriod;
     } else if (savedPeriod === "") {
       select.value = "";
     } else {
-      // Default ke tahun 2026 atau tahun pertama yang tersedia
-      const defaultPeriod = 2026;
+      const defaultPeriod = "2026/2027";
       select.value = defaultPeriod;
       saveSelectedPeriod("periodSelect", defaultPeriod);
     }
 
-    // Event listener dengan persistence
+    // Event listener tetap sama, hanya update header title
     if (!select.hasAttribute("data-listener-added")) {
       select.setAttribute("data-listener-added", "true");
 
       select.addEventListener("change", (e) => {
         const selectedPeriod = e.target.value;
-
-        // Save selected period
         saveSelectedPeriod("periodSelect", selectedPeriod);
 
         const periodToPass =
@@ -492,19 +482,17 @@ async function populatePeriodSelector() {
         const headerTitle = document.querySelector(".header-title");
         if (headerTitle) {
           const baseTitleText = "Pemilihan HIMA TI";
-          const displayPeriod = selectedPeriod || 2026;
+          const displayPeriod = selectedPeriod || "2026/2027";
           headerTitle.innerHTML = `${baseTitleText} <span id="electionPeriod">${displayPeriod}</span>`;
         }
       });
     }
 
-    // Load candidates dengan saved period saat pertama kali
     const initialPeriod =
       select.value && select.value.trim() !== "" ? select.value : null;
     loadCandidates(initialPeriod);
   } catch (error) {
     console.error("Error populating period selector:", error);
-    // Fallback ke periode dinamis jika ada error
     populateEmptyPeriodSelector("periodSelect");
   }
 }
@@ -532,8 +520,10 @@ export async function loadCandidates(period = null) {
     // Filter berdasarkan period di frontend
     if (period && period.trim() !== "") {
       filteredData = res.data.filter((candidate) => {
-        const candidateYear = new Date(candidate.created_at).getFullYear() + 1;
-        return candidateYear.toString() === period.toString();
+        const candidateYear = new Date(candidate.created_at).getFullYear();
+        const nextYear = candidateYear + 1;
+        const candidatePeriod = `${nextYear}/${nextYear + 1}`;
+        return candidatePeriod === period;
       });
     }
 
@@ -794,12 +784,12 @@ function closeModal() {
 }
 
 // ======================= UPDATED POPULATE ADMIN PERIOD SELECTOR =======================
+// 4. Update populateAdminPeriodSelector - sama seperti populatePeriodSelector
 async function populateAdminPeriodSelector() {
   try {
     const res = await getAllCandidates();
 
     if (!res.success || !res.data) {
-      // Jika tidak ada data kandidat, tetap tampilkan periode dinamis
       populateEmptyPeriodSelector("adminPeriodSelect");
       return;
     }
@@ -809,39 +799,36 @@ async function populateAdminPeriodSelector() {
       ...new Set(
         res.data.map((candidate) => {
           const year = new Date(candidate.created_at).getFullYear();
-          return year + 1;
+          const nextYear = year + 1;
+          return `${nextYear}/${nextYear + 1}`;
         })
       ),
     ];
 
-    // Generate dynamic periods (2026-2035)
+    // Generate dynamic periods (2026/2027 - 2035/2036)
     const dynamicPeriods = generateDynamicPeriods();
 
     // Gabungkan existing periods dengan dynamic periods, lalu sort
     const allPeriods = [
       ...new Set([...existingPeriods, ...dynamicPeriods]),
-    ].sort((a, b) => a - b);
+    ].sort();
 
     const select = document.getElementById("adminPeriodSelect");
     if (!select) return;
 
-    // Load saved period
     const savedPeriod = loadSelectedPeriod("adminPeriodSelect");
 
-    // Clear dan populate options
     select.innerHTML = '<option value="">Semua Periode</option>';
 
     allPeriods.forEach((period) => {
       const option = document.createElement("option");
       option.value = period;
 
-      // Tandai periode yang tidak memiliki kandidat
       const hasCandidates = existingPeriods.includes(period);
       option.textContent = hasCandidates
-        ? `${period}`
+        ? period
         : `${period} (Belum ada kandidat)`;
 
-      // Tambahkan class untuk styling jika diperlukan
       if (!hasCandidates) {
         option.className = "no-candidates";
       }
@@ -849,30 +836,23 @@ async function populateAdminPeriodSelector() {
       select.appendChild(option);
     });
 
-    // Tambahkan scroll styling ke select
-    select.style.maxHeight = "200px";
-    select.style.overflowY = "auto";
-
-    // Set saved period atau default
-    if (savedPeriod && allPeriods.includes(parseInt(savedPeriod))) {
+    // Set default
+    if (savedPeriod && allPeriods.includes(savedPeriod)) {
       select.value = savedPeriod;
     } else if (savedPeriod === "") {
       select.value = "";
     } else {
-      // Default ke tahun 2026
-      const defaultPeriod = 2026;
+      const defaultPeriod = "2026/2027";
       select.value = defaultPeriod;
       saveSelectedPeriod("adminPeriodSelect", defaultPeriod);
     }
 
-    // Event listener dengan persistence
+    // Event listener
     if (!select.hasAttribute("data-listener-added")) {
       select.setAttribute("data-listener-added", "true");
 
       select.addEventListener("change", (e) => {
         const selectedPeriod = e.target.value;
-
-        // Save selected period
         saveSelectedPeriod("adminPeriodSelect", selectedPeriod);
 
         const periodToPass =
@@ -884,28 +864,26 @@ async function populateAdminPeriodSelector() {
         // Update header title
         const headerTitle = document.querySelector(".title-card h1 span");
         if (headerTitle) {
-          const displayPeriod = selectedPeriod || 2026;
+          const displayPeriod = selectedPeriod || "2026/2027";
           headerTitle.textContent = displayPeriod;
         }
       });
     }
 
-    // Load candidates dengan saved period saat pertama kali
     const initialPeriod =
       select.value && select.value.trim() !== "" ? select.value : null;
     loadCandidatesAdmin(initialPeriod);
   } catch (error) {
     console.error("Error populating admin period selector:", error);
-    // Fallback ke periode dinamis jika ada error
     populateEmptyPeriodSelector("adminPeriodSelect");
   }
 }
-
 // ======================= HELPER FUNCTION FOR EMPTY PERIOD SELECTOR =======================
 /**
  * Populate period selector when no candidates exist yet
  * @param {string} selectId - ID of the select element
  */
+// 6. Update populateEmptyPeriodSelector
 function populateEmptyPeriodSelector(selectId) {
   const select = document.getElementById(selectId);
   if (!select) return;
@@ -923,19 +901,15 @@ function populateEmptyPeriodSelector(selectId) {
     select.appendChild(option);
   });
 
-  // Tambahkan scroll styling
-  select.style.maxHeight = "200px";
-  select.style.overflowY = "auto";
-
-  // Set default atau saved period
-  if (savedPeriod && dynamicPeriods.includes(parseInt(savedPeriod))) {
+  // Set default
+  if (savedPeriod && dynamicPeriods.includes(savedPeriod)) {
     select.value = savedPeriod;
   } else {
-    select.value = 2026; // Default ke 2026
-    saveSelectedPeriod(selectId, 2026);
+    select.value = "2026/2027"; // Default ke 2026/2027
+    saveSelectedPeriod(selectId, "2026/2027");
   }
 
-  // Add event listener jika belum ada
+  // Event listener update
   if (!select.hasAttribute("data-listener-added")) {
     select.setAttribute("data-listener-added", "true");
 
@@ -949,20 +923,18 @@ function populateEmptyPeriodSelector(selectId) {
       if (selectId === "periodSelect") {
         loadCandidates(periodToPass);
 
-        // Update header title
         const headerTitle = document.querySelector(".header-title");
         if (headerTitle) {
           const baseTitleText = "Pemilihan HIMA TI";
-          const displayPeriod = selectedPeriod || 2026;
+          const displayPeriod = selectedPeriod || "2026/2027";
           headerTitle.innerHTML = `${baseTitleText} <span id="electionPeriod">${displayPeriod}</span>`;
         }
       } else if (selectId === "adminPeriodSelect") {
         loadCandidatesAdmin(periodToPass);
 
-        // Update admin header title
         const headerTitle = document.querySelector(".title-card h1 span");
         if (headerTitle) {
-          const displayPeriod = selectedPeriod || 2026;
+          const displayPeriod = selectedPeriod || "2026/2027";
           headerTitle.textContent = displayPeriod;
         }
       }
@@ -994,11 +966,12 @@ export async function loadCandidatesAdmin(period = null) {
     // Filter berdasarkan period di frontend
     if (period && period.trim() !== "") {
       filteredData = res.data.filter((candidate) => {
-        const candidateYear = new Date(candidate.created_at).getFullYear() + 1;
-        return candidateYear.toString() === period.toString();
+        const candidateYear = new Date(candidate.created_at).getFullYear();
+        const nextYear = candidateYear + 1;
+        const candidatePeriod = `${nextYear}/${nextYear + 1}`;
+        return candidatePeriod === period;
       });
     }
-
     container.innerHTML = "";
 
     if (filteredData.length === 0) {
