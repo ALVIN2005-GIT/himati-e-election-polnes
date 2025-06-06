@@ -34,10 +34,6 @@ class DataRecapApp {
     this.elements.resultsList = document.getElementById("generatedList");
     this.elements.toast = document.getElementById("toast");
     this.elements.confirmToast = document.getElementById("confirm-toast");
-
-    if (!this.elements.yearInput || !this.elements.resultsList) {
-      console.error("Required DOM elements not found");
-    }
   }
 
   /**
@@ -222,8 +218,6 @@ class DataRecapApp {
         5000
       );
     } catch (error) {
-      console.error("Download error:", error);
-
       // Show error results
       this.displayResults([
         {
@@ -248,7 +242,6 @@ class DataRecapApp {
 
     const toast = this.elements.toast;
     if (!toast) {
-      console.error("Toast element not found!");
       return;
     }
 
@@ -283,7 +276,6 @@ class DataRecapApp {
       const noBtn = document.getElementById("confirm-no");
 
       if (!confirmToast || !confirmMessage || !yesBtn || !noBtn) {
-        console.error("Confirm toast elements not found!");
         return resolve(false);
       }
 

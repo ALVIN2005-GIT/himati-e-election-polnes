@@ -32,7 +32,6 @@ export async function getAllVotes() {
       data: data.data,
     };
   } catch (err) {
-    console.error("Error fetching votes:", err);
     return {
       success: false,
       status: 0,
@@ -74,7 +73,7 @@ export async function voteForCandidate(candidateId) {
         errorMessage = errorData?.error?.message || errorMessage;
         errorDetails = errorData?.error?.details || null;
       } catch (parseError) {
-        console.error("Failed to parse error response:", parseError);
+        throw new Error(`Error parsing response: ${parseError.message}`);
       }
 
       return {

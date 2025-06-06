@@ -40,7 +40,6 @@ export async function getPresignedUrl(filename) {
         };
       }
 
-      console.error("Presigned URL error:", errorData);
       return {
         success: false,
         message:
@@ -62,7 +61,6 @@ export async function getPresignedUrl(filename) {
       message: data.message || "Successfully generated presigned URL",
     };
   } catch (error) {
-    console.error("Error getting presigned URL:", error);
     return { success: false, message: error.message };
   }
 }
@@ -76,7 +74,6 @@ export async function uploadFile(presignedUrl, file) {
   try {
     // Hard validation - ensure file exists
     if (!file) {
-      console.error("ERROR: File parameter is missing in uploadFile function");
       return false;
     }
 
@@ -90,13 +87,11 @@ export async function uploadFile(presignedUrl, file) {
     });
 
     if (!response.ok) {
-      console.error("Upload error:", response.status, response.statusText);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error("Error uploading file:", error.message || error);
     return false;
   }
 }
@@ -120,7 +115,7 @@ export async function createCandidate(candidateData) {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("Create candidate error:", errorData);
+
       return {
         success: false,
         message:
@@ -136,7 +131,6 @@ export async function createCandidate(candidateData) {
       message: data.message,
     };
   } catch (error) {
-    console.error("Error creating candidate:", error);
     return { success: false, message: error.message };
   }
 }
@@ -164,7 +158,7 @@ export async function getAllCandidates(period = null) {
       const errorData = await response.json().catch(() => ({
         error: { message: `Error ${response.status}: ${response.statusText}` },
       }));
-      console.error("Get candidates error:", errorData);
+
       return {
         success: false,
         message:
@@ -180,7 +174,6 @@ export async function getAllCandidates(period = null) {
       message: data.message,
     };
   } catch (error) {
-    console.error("Error getting candidates:", error);
     return { success: false, message: error.message };
   }
 }
@@ -203,7 +196,7 @@ export async function getCandidateById(id) {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("Get candidate error:", errorData);
+
       return {
         success: false,
         message:
@@ -219,7 +212,6 @@ export async function getCandidateById(id) {
       message: data.message,
     };
   } catch (error) {
-    console.error("Error getting candidate by ID:", error);
     return { success: false, message: error.message };
   }
 }
@@ -244,7 +236,7 @@ export async function updateCandidate(id, candidateData) {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("Update candidate error:", errorData);
+
       return {
         success: false,
         message:
@@ -260,7 +252,6 @@ export async function updateCandidate(id, candidateData) {
       message: data.message,
     };
   } catch (error) {
-    console.error("Error updating candidate:", error);
     return { success: false, message: error.message };
   }
 }
@@ -283,7 +274,7 @@ export async function deleteCandidate(id) {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("Delete candidate error:", errorData);
+
       return {
         success: false,
         message:
@@ -299,7 +290,6 @@ export async function deleteCandidate(id) {
       message: data.message,
     };
   } catch (error) {
-    console.error("Error deleting candidate:", error);
     return { success: false, message: error.message };
   }
 }

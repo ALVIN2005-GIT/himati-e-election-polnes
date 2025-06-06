@@ -20,7 +20,6 @@ function showConfirmToast(message) {
     const noBtn = document.getElementById("confirm-no");
 
     if (!confirmToast || !confirmMessage || !yesBtn || !noBtn) {
-      console.error("Elemen toast konfirmasi tidak ditemukan!");
       return resolve(false);
     }
 
@@ -99,7 +98,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (!response.success) {
         showToast(response.message, "error");
-        console.error("Login gagal:", response.details);
+
         return;
       }
 
@@ -179,7 +178,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.location.href = "/views/login.html";
       } else {
         showToast(`Logout gagal: ${result.message}`, "error");
-        console.error("Logout error detail:", result.details);
       }
     }
   });

@@ -35,7 +35,6 @@ class DataRecapAPI {
 
       return await response.json();
     } catch (error) {
-      console.error("Error getting vote log URL:", error);
       throw new Error(
         error.message || "Gagal mengambil URL log. Periksa koneksi internet."
       );
@@ -59,7 +58,6 @@ class DataRecapAPI {
 
       return await response.text();
     } catch (error) {
-      console.error("Error downloading log content:", error);
       throw new Error(error.message || "Gagal mengunduh konten file log");
     }
   }
@@ -107,7 +105,6 @@ class DataRecapAPI {
           line,
           reason: "Invalid JSON format",
         });
-        console.warn("Skipping invalid JSON line:", line, parseError);
       }
     }
 
@@ -163,7 +160,6 @@ class DataRecapAPI {
 
       return filename;
     } catch (error) {
-      console.error("Error generating Excel file:", error);
       throw new Error(error.message || "Gagal membuat file Excel");
     }
   }

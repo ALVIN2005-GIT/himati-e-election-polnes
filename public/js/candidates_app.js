@@ -66,7 +66,6 @@ function showConfirmToast(message) {
     const noBtn = document.getElementById("confirm-no");
 
     if (!confirmToast || !confirmMessage || !yesBtn || !noBtn) {
-      console.error("Elemen toast konfirmasi tidak ditemukan!");
       return resolve(false);
     }
 
@@ -149,8 +148,6 @@ function initializeApp() {
         photoPreview.src = "";
       }
     });
-  } else {
-    console.warn("Form not found in document");
   }
 
   // Set up file input preview
@@ -170,8 +167,6 @@ function initializeApp() {
         photoPreview.style.display = "none";
       }
     });
-  } else {
-    console.warn("Photo input or preview not found");
   }
 
   // Add modal functions to window
@@ -243,7 +238,6 @@ async function handleFormSubmit(e) {
 
           // Pastikan data dan url ada dalam respons
           if (!presignedRes.data || !presignedRes.data.url) {
-            console.error("Invalid presigned URL structure:", presignedRes);
             throw new Error("Format response presigned URL tidak valid");
           }
 
@@ -262,7 +256,7 @@ async function handleFormSubmit(e) {
           candidateData.photo_key = photoKey;
         } catch (uploadError) {
           showToast(`Upload gagal: ${uploadError.message}`, "error");
-          console.error("Upload error details:", uploadError);
+
           return;
         }
       }
@@ -281,7 +275,7 @@ async function handleFormSubmit(e) {
         showToast("Kandidat berhasil diperbarui!", "success");
       } catch (updateError) {
         showToast(`Update gagal: ${updateError.message}`, "error");
-        console.error("Update error details:", updateError);
+
         return;
       }
     }
@@ -307,7 +301,6 @@ async function handleFormSubmit(e) {
         }
 
         if (!presignedRes.data || !presignedRes.data.url) {
-          console.error("Invalid presigned URL structure:", presignedRes);
           throw new Error("Format response presigned URL tidak valid");
         }
 
@@ -326,7 +319,7 @@ async function handleFormSubmit(e) {
         candidateData.photo_key = photoKey;
       } catch (uploadError) {
         showToast(`Upload gagal: ${uploadError.message}`, "error");
-        console.error("Upload error details:", uploadError);
+
         return;
       }
 
@@ -343,7 +336,7 @@ async function handleFormSubmit(e) {
         showToast("Kandidat berhasil dibuat!", "success");
       } catch (createError) {
         showToast(`Pembuatan kandidat gagal: ${createError.message}`, "error");
-        console.error("Create error details:", createError);
+
         return;
       }
     }
@@ -365,7 +358,6 @@ async function handleFormSubmit(e) {
     await loadCandidates();
     await loadCandidatesAdmin();
   } catch (error) {
-    console.error("Terjadi kesalahan umum:", error);
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
   }
 }
@@ -505,7 +497,6 @@ export async function loadCandidates() {
 
     showToast("Data kandidat berhasil dimuat", "success");
   } catch (error) {
-    console.error("Error loading candidates:", error);
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
   }
 }
@@ -528,7 +519,6 @@ async function handleVoteClick(event) {
 
   const candidateId = event.target.dataset.id;
   if (!candidateId) {
-    console.error("No candidate ID found on button");
     showToast("Error: ID kandidat tidak ditemukan", "error");
     return;
   }
@@ -559,7 +549,7 @@ async function handleVoteClick(event) {
       event.target.textContent = originalText;
     }
   } catch (error) {
-    console.error("Error submitting vote:", error);
+    showToast(`Terjadi kesalahan: ${error.message}`, "error");
 
     // Kembalikan tombol
     event.target.disabled = false;
@@ -590,7 +580,6 @@ function showCandidateDetail(candidate, photoUrl) {
   const modalContent = document.getElementById("modalContent");
 
   if (!modal || !modalContent) {
-    console.error("Modal elements not found");
     return;
   }
 
@@ -763,7 +752,6 @@ export async function loadCandidatesAdmin() {
 
     showToast("Data kandidat admin berhasil dimuat", "success");
   } catch (error) {
-    console.error("Error loading admin candidates:", error);
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
   }
 }
@@ -834,7 +822,6 @@ async function handleEditCandidate(id) {
       photoPreview.onerror = function () {
         this.onerror = null; // Prevent infinite loop
         this.src = "/public/assets/placeholder-image.jpg";
-        console.error("Failed to load image:", photoUrl);
       };
     }
 
@@ -843,7 +830,6 @@ async function handleEditCandidate(id) {
 
     showToast("Data kandidat siap diedit", "success");
   } catch (error) {
-    console.error("Error handling edit:", error);
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
   }
 }
@@ -869,7 +855,6 @@ async function handleDeleteCandidate(id) {
     await loadCandidatesAdmin();
     await loadCandidates();
   } catch (error) {
-    console.error("Error deleting candidate:", error);
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
   }
 }

@@ -17,7 +17,6 @@ function initializeSimpleCountdown() {
     }
 
     // FALLBACK: Jika tidak ada konfigurasi, gunakan nilai default
-    console.warn("No voting configuration found, using default dates");
 
     // Logika tahun dinamis yang pintar
     const now = new Date();

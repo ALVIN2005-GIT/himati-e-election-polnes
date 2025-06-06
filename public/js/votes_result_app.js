@@ -174,7 +174,6 @@ export function setupWebSocket() {
   };
 
   wsConnection.onclose = (event) => {
-    console.warn("WebSocket connection closed:", event.code, event.reason);
     updateConnectionStatus(false);
 
     if (event.code !== 1000 && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
@@ -187,7 +186,6 @@ export function setupWebSocket() {
   };
 
   wsConnection.onerror = (error) => {
-    console.error("WebSocket error:", error);
     updateConnectionStatus(false);
   };
 
@@ -205,12 +203,7 @@ export function setupWebSocket() {
 
       updateLastRefreshTime();
     } catch (err) {
-      console.error(
-        "Failed to parse WebSocket message:",
-        err,
-        "Raw data:",
-        event.data
-      );
+      throw err;
     }
   };
 }
@@ -473,10 +466,6 @@ export async function loadVotingResults() {
           ? Number(voteResponse.data?.total_votes || 0)
           : 0;
       } catch (error) {
-        console.error(
-          `Error loading votes for candidate ${candidate.id}:`,
-          error
-        );
         votesData[i] = 0;
       }
     }
@@ -488,8 +477,7 @@ export async function loadVotingResults() {
 
     updateVoteCounts(candidatesData, votesData, percentages);
   } catch (error) {
-    console.error("Error loading voting results:", error);
-    showError("Terjadi kesalahan saat memuat hasil pemilihan.");
+    throw error;
   }
 }
 
