@@ -129,7 +129,8 @@ export function initializeApp() {
   // Load candidates for admin view
   const adminContainer = document.getElementById("adminCandidateList");
   if (adminContainer) {
-    loadCandidatesAdmin();
+    populateAdminPeriodSelector(); // Add this line
+    loadCandidatesAdmin(); // Load default candidates
   }
 
   // Set up form submission handler
@@ -710,15 +711,77 @@ function closeModal() {
   }
 }
 
+// ======================= POPULATE ADMIN PERIOD SELECTOR =======================
+async function populateAdminPeriodSelector() {
+  try {
+    // Get all candidates to extract available periods
+    const res = await getAllCandidates();
+
+    if (!res.success || !res.data) return;
+
+    // Extract unique periods from candidate data
+    const periods = [
+      ...new Set(
+        res.data.map((candidate) => {
+          const year = new Date(candidate.created_at).getFullYear();
+          return year + 1; // Election year is next year
+        })
+      ),
+    ].sort((a, b) => b - a); // Sort descending (newest first)
+
+    const select = document.getElementById("adminPeriodSelect");
+    if (!select) return;
+
+    // Clear existing options (keep "Semua Periode")
+    select.innerHTML = '<option value="">Semua Periode</option>';
+
+    // Add period options
+    periods.forEach((period) => {
+      const option = document.createElement("option");
+      option.value = period;
+      option.textContent = period;
+
+      // Set current period as selected
+      const currentYear = new Date().getFullYear();
+      if (period === currentYear + 1) {
+        option.selected = true;
+      }
+
+      select.appendChild(option);
+    });
+
+    // Add event listener
+    select.addEventListener("change", (e) => {
+      const selectedPeriod = e.target.value;
+      // Pass period only if there's a value
+      const periodToPass =
+        selectedPeriod && selectedPeriod.trim() !== "" ? selectedPeriod : null;
+
+      loadCandidatesAdmin(periodToPass);
+
+      // Update header title
+      const headerTitle = document.querySelector(".title-card h1 span");
+      if (headerTitle) {
+        const displayPeriod = selectedPeriod || new Date().getFullYear() + 1;
+        headerTitle.textContent = displayPeriod;
+      }
+    });
+  } catch (error) {
+    console.error("Error populating admin period selector:", error);
+  }
+}
+
 // ======================= LOAD KANDIDAT (UNTUK ADMIN) =======================
-export async function loadCandidatesAdmin() {
+// ======================= LOAD KANDIDAT (UNTUK ADMIN) =======================
+export async function loadCandidatesAdmin(period = null) {
   const container = document.getElementById("adminCandidateList");
   if (!container) return;
 
   try {
     showToast("Memuat data kandidat untuk admin...", "info");
 
-    const res = await getAllCandidates();
+    // Pass period parameter to getAllCandidates
+    const res = await getAllCandidates(period);
 
     if (!res.success || res.data == null) {
       showToast("Gagal mengambil data kandidat", "error");
@@ -728,8 +791,12 @@ export async function loadCandidatesAdmin() {
     container.innerHTML = "";
 
     if (res.data.length === 0) {
-      container.innerHTML =
-        "<p class='no-data'>Tidak ada kandidat tersedia.</p>";
+      // Show appropriate message based on period filter
+      const noCandidateMsg =
+        period && period.trim() !== ""
+          ? `Tidak ada kandidat untuk periode ${period}.`
+          : "Tidak ada kandidat tersedia.";
+      container.innerHTML = `<p class='no-data'>${noCandidateMsg}</p>`;
       return;
     }
 
@@ -827,7 +894,12 @@ export async function loadCandidatesAdmin() {
       });
     });
 
-    showToast("Data kandidat admin berhasil dimuat", "success");
+    // Show success message with period info
+    const successMsg =
+      period && period.trim() !== ""
+        ? `Data kandidat admin periode ${period} berhasil dimuat`
+        : "Data kandidat admin berhasil dimuat";
+    showToast(successMsg, "success");
   } catch (error) {
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
   }
