@@ -36,7 +36,7 @@
       }
 
       .period-selector-container .form-label {
-        color: white;
+        color: rgb(0, 0, 0);
         font-weight: 500;
         margin-bottom: 10px;
       }
@@ -98,17 +98,7 @@
           <div class="header-subtitle">
             Daftar Kandidat Ketua dan Wakil Ketua HIMA TI
           </div>
-          <div class="period-selector-container mb-4">
-            <label for="periodSelect" class="form-label">Pilih Periode:</label>
-            <select
-              id="periodSelect"
-              class="form-select form-select-sm"
-              style="max-width: 200px; margin: 0 auto"
-            >
-              <option value="">Semua Periode</option>
-              <!-- Options akan diisi dinamis -->
-            </select>
-          </div>
+
           <div class="header-line"></div>
         </div>
         <div class="time-info-container">
@@ -125,6 +115,17 @@
             <!-- Uncomment if you want to display milliseconds -->
             <!-- <span class="ms-separator">.</span><span id="timeRemainingMs">000</span> -->
           </div>
+        </div>
+        <div class="period-selector-container mb-4">
+          <label for="periodSelect" class="form-label">Pilih Periode:</label>
+          <select
+            id="periodSelect"
+            class="form-select form-select-sm"
+            style="max-width: 200px; margin: 0 auto"
+          >
+            <option value="">Semua Periode</option>
+            <!-- Options akan diisi dinamis -->
+          </select>
         </div>
         <button id="logout-btn" class="nav-link">
           <i class="bi bi-box-arrow-left me-1"></i>Logout
