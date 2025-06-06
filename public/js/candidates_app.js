@@ -127,7 +127,7 @@ export function initializeApp() {
   const publicAdminContainer = document.getElementById("candidateAdminList");
   if (publicAdminContainer) {
     populatePeriodSelector(); // Tambahkan ini
-    loadCandidates(); // Load default candidates
+    loadAdminCandidates(); //// Load default candidates
   }
 
   // Load candidates for admin view
@@ -635,8 +635,153 @@ export async function loadCandidates(period = null) {
     // Success message
     const successMsg =
       period && period.trim() !== ""
-        ? `Data kandidat periode ${period} berhasil dimuat (${filteredData.length} kandidat)`
-        : `Data kandidat berhasil dimuat (${filteredData.length} kandidat)`;
+        ? `Data kandidat periode ${period} berhasil dimuat `
+        : `Data kandidat berhasil dimuat`;
+    showToast(successMsg, "success");
+  } catch (error) {
+    container.innerHTML = `<div class='no-data'>
+      <i class='bi bi-exclamation-triangle'></i>
+      <p>Terjadi kesalahan saat memuat data</p>
+      <small>${error.message}</small>
+    </div>`;
+    showToast(`Terjadi kesalahan: ${error.message}`, "error");
+  }
+}
+export async function loadAdminCandidates(period = null) {
+  const container = document.getElementById("candidateAdminList");
+  if (!container) return;
+
+  try {
+    // Ambil SEMUA data dulu, lalu filter di frontend
+    const res = await getAllCandidates();
+
+    if (!res.success || !res.data || res.data == null) {
+      container.innerHTML = `<div class='no-data'>
+        <i class='bi bi-exclamation-circle'></i>
+        <p>Gagal mengambil data kandidat</p>
+      </div>`;
+      showToast("Gagal mengambil data kandidat", "error");
+      return;
+    }
+
+    let filteredData = res.data;
+
+    // Filter berdasarkan period di frontend
+    if (period && period.trim() !== "") {
+      filteredData = res.data.filter((candidate) => {
+        const candidateYear = new Date(candidate.created_at).getFullYear();
+        const nextYear = candidateYear + 1;
+        const candidatePeriod = `${nextYear}/${nextYear + 1}`;
+        return candidatePeriod === period;
+      });
+    }
+
+    container.innerHTML = "";
+
+    // Pesan yang lebih informatif
+    if (filteredData.length === 0) {
+      let noCandidateMsg;
+      if (period && period.trim() !== "") {
+        noCandidateMsg = `
+          <div class='no-data'>
+            <i class='bi bi-calendar-x'></i>
+            <h3>Belum Ada Kandidat</h3>
+            <p>Belum ada kandidat yang terdaftar untuk periode ${period}.</p>
+            <small>Silakan pilih periode lain atau tunggu hingga ada kandidat yang mendaftar.</small>
+          </div>`;
+      } else {
+        noCandidateMsg = `
+          <div class='no-data'>
+            <i class='bi bi-person-x'></i>
+            <h3>Tidak Ada Kandidat</h3>
+            <p>Belum ada kandidat yang terdaftar dalam sistem.</p>
+            <small>Silakan hubungi administrator untuk informasi lebih lanjut.</small>
+          </div>`;
+      }
+      container.innerHTML = noCandidateMsg;
+      return;
+    }
+
+    // Sort candidates by number before displaying
+    const sortedCandidates = [...filteredData].sort(
+      (a, b) => a.number - b.number
+    );
+
+    // Render candidates (kode rendering tetap sama seperti sebelumnya)
+    const candidatesGrid = document.createElement("div");
+    candidatesGrid.className = "row g-4 justify-content-center";
+
+    sortedCandidates.forEach((candidate) => {
+      // Proper image URL handling
+      let photoUrl;
+      if (candidate.photo_url) {
+        if (candidate.photo_url.startsWith("http")) {
+          photoUrl = candidate.photo_url;
+        } else {
+          photoUrl = `${BASE_PUBLIC_FILE_URL}/${candidate.photo_url}`;
+        }
+      } else if (candidate.photo_key) {
+        photoUrl = `${BASE_PUBLIC_FILE_URL}/${candidate.photo_key}`;
+      } else {
+        photoUrl = "/public/assets/placeholder-image.jpg";
+      }
+
+      const col = document.createElement("div");
+      col.className = "col-12 col-sm-6 col-lg-4 d-flex justify-content-center";
+
+      const card = document.createElement("div");
+      card.className = "candidate-card";
+
+      card.innerHTML = `
+      <div class="candidate-number">${candidate.number || ""}</div>
+      <div class="candidate-photo">
+        <img src="${photoUrl}" alt="Foto Kandidat" onerror="this.onerror=null; this.src='/public/assets/placeholder-image.jpg';">
+      </div>
+      <div class="candidate-info-simple">
+        <div class="candidate-pair">
+          <div class="candidate-block">
+            <div class="role-label">Calon Ketua</div>
+            <span class="candidate-president">${
+              candidate.president || ""
+            }</span>
+          </div>
+          <div class="candidate-block">
+            <div class="role-label">Calon Wakil Ketua</div>
+            <span class="candidate-vice">${candidate.vice || ""}</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button class="coblos-button" data-id="${
+          candidate.id
+        }"><i class="bi bi-crosshair me-1"></i> Coblos</button>
+      </div>
+      `;
+
+      col.appendChild(card);
+      candidatesGrid.appendChild(col);
+    });
+
+    container.appendChild(candidatesGrid);
+
+    // Add event listeners (tetap sama seperti sebelumnya)
+    const candidatePhotos = container.querySelectorAll(".candidate-photo img");
+    candidatePhotos.forEach((img, index) => {
+      img.addEventListener("click", () => {
+        showCandidateDetail(sortedCandidates[index], img.src);
+      });
+    });
+
+    const voteButtons = container.querySelectorAll(".coblos-button");
+    voteButtons.forEach((button) => {
+      button.addEventListener("click", handleVoteClick);
+    });
+
+    // Success message
+    const successMsg =
+      period && period.trim() !== ""
+        ? `Data kandidat periode ${period} berhasil dimuat `
+        : `Data kandidat berhasil dimuat`;
     showToast(successMsg, "success");
   } catch (error) {
     container.innerHTML = `<div class='no-data'>
