@@ -1,53 +1,8 @@
 import { login, getCurrentUser, logoutUser } from "/public/js/users_api.js";
 
-// Loading state management
-let isInitializing = true;
-
-function showLoadingState() {
-  // Tambahkan loading spinner atau hide content
-  document.body.style.visibility = "hidden";
-
-  // Buat loading overlay jika belum ada
-  if (!document.getElementById("auth-loading")) {
-    const loadingDiv = document.createElement("div");
-    loadingDiv.id = "auth-loading";
-    loadingDiv.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255,255,255,0.9);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      font-family: Arial, sans-serif;
-    `;
-    loadingDiv.innerHTML = `
-      <div style="text-align: center;">
-        <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
-        <p>Loading...</p>
-      </div>
-      <style>
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      </style>
-    `;
-    document.body.appendChild(loadingDiv);
-  }
-}
-
-function hideLoadingState() {
-  const loadingDiv = document.getElementById("auth-loading");
-  if (loadingDiv) {
-    loadingDiv.remove();
-  }
-  document.body.style.visibility = "visible";
-  isInitializing = false;
-}
+// Global state
+let authCheckComplete = false;
+let isRedirecting = false;
 
 function showToast(message, type = "success") {
   const toast = document.getElementById("toast");
@@ -114,76 +69,101 @@ function showConfirmToast(message) {
   });
 }
 
-// Fungsi untuk redirect dengan loading state
-function redirectWithLoading(url, delay = 1500) {
-  showLoadingState();
-  setTimeout(() => {
-    window.location.href = url;
-  }, delay);
+// Fungsi untuk cek apakah halaman ini adalah halaman error
+function isErrorPage() {
+  const path = window.location.pathname;
+  return path.includes("403") || path.includes("500") || path.includes("error");
 }
 
-// Handle page protection dengan error handling yang lebih baik
-async function handlePageProtection() {
+// Fungsi untuk cek apakah halaman ini adalah halaman login
+function isLoginPage() {
+  const path = window.location.pathname;
+  return path.includes("login") || path === "/";
+}
+
+// Fungsi redirect yang aman
+function safeRedirect(url) {
+  if (isRedirecting) return; // Prevent multiple redirects
+
+  isRedirecting = true;
+  console.log(`Redirecting to: ${url}`);
+
+  // Use replace instead of href to prevent back button issues
+  window.location.replace(url);
+}
+
+// Check authentication status
+async function checkAuth() {
+  if (authCheckComplete) return true;
+
   try {
     const userRes = await getCurrentUser();
-    const path = window.location.pathname;
-
-    const protectedPaths = [
-      "/views/admin/admin-dashboard.html",
-      "/views/admin/admin-crud.html",
-      "/views/admin/upload-file.html",
-      "/views/admin/generate-send-password.html",
-      "/views/admin/votes-result.html",
-      "/views/admin/data-recap.html",
-      "/views/admin/votes.html",
-      "/views/students/votes.html",
-      "/views/403.html",
-      "/views/403_1.html",
-      "/views/500.html",
-    ];
-
-    // Jika tidak berhasil get current user (belum login)
-    if (!userRes.success) {
-      if (protectedPaths.includes(path)) {
-        // Langsung redirect tanpa delay yang lama
-        redirectWithLoading("/views/403_1.html", 500);
-        return false;
-      }
-      return true; // Allow access ke halaman publik
-    }
-
-    const { user } = userRes;
-
-    // Check role-based access
-    if (path.includes("/admin/") && user.role !== "admin") {
-      redirectWithLoading("/views/403.html", 500);
-      return false;
-    }
-
-    if (path.includes("/students/") && user.role !== "student") {
-      redirectWithLoading("/views/403.html", 500);
-      return false;
-    }
-
-    return true; // Access granted
+    authCheckComplete = true;
+    return userRes;
   } catch (error) {
-    console.error("Error in page protection:", error);
-    // Pada error, redirect ke 500 page
-    redirectWithLoading("/views/500.html", 500);
-    return false;
+    console.error("Auth check failed:", error);
+    authCheckComplete = true;
+    return { success: false, message: "Network error" };
   }
 }
 
+// Handle page protection
+async function handlePageProtection() {
+  const path = window.location.pathname;
+
+  // Skip protection for error pages and login page
+  if (isErrorPage() || isLoginPage()) {
+    return;
+  }
+
+  const protectedPaths = [
+    "/views/admin/admin-dashboard.html",
+    "/views/admin/admin-crud.html",
+    "/views/admin/upload-file.html",
+    "/views/admin/generate-send-password.html",
+    "/views/admin/votes-result.html",
+    "/views/admin/data-recap.html",
+    "/views/admin/votes.html",
+    "/views/students/votes.html",
+  ];
+
+  // Only check auth if this is a protected path
+  if (!protectedPaths.includes(path)) {
+    return;
+  }
+
+  const userRes = await checkAuth();
+
+  if (!userRes.success) {
+    // User not authenticated
+    safeRedirect("/views/403_1.html");
+    return;
+  }
+
+  const { user } = userRes;
+
+  // Check role-based access
+  if (path.includes("/admin/") && user.role !== "admin") {
+    safeRedirect("/views/403.html");
+    return;
+  }
+
+  if (path.includes("/students/") && user.role !== "student") {
+    safeRedirect("/views/403.html");
+    return;
+  }
+
+  // Access granted - show the page
+  document.body.style.visibility = "visible";
+}
+
 // Handle login form
-async function handleLoginForm() {
+function handleLoginForm() {
   const loginForm = document.getElementById("loginForm");
   if (!loginForm) return;
 
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    // Show loading state
-    showLoadingState();
 
     try {
       const maxLength = 14;
@@ -196,22 +176,27 @@ async function handleLoginForm() {
       // Validation
       if (nim.length > maxLength) {
         nimInput.value = nim.slice(0, maxLength);
-        hideLoadingState();
         showToast("NIM tidak boleh lebih dari 14 karakter.", "warning");
         return;
       }
 
       if (!password) {
-        hideLoadingState();
         showToast("Password wajib diisi.", "warning");
         return;
+      }
+
+      // Disable form during submission
+      loginForm.style.pointerEvents = "none";
+      const submitBtn = loginForm.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.textContent = "Loading...";
+        submitBtn.disabled = true;
       }
 
       // Attempt login
       const response = await login(nim, password);
 
       if (!response.success) {
-        hideLoadingState();
         showToast(response.message, "error");
         return;
       }
@@ -220,7 +205,6 @@ async function handleLoginForm() {
       const userRes = await getCurrentUser();
 
       if (!userRes.success) {
-        hideLoadingState();
         showToast("Gagal mendapatkan user setelah login.", "error");
         return;
       }
@@ -231,21 +215,27 @@ async function handleLoginForm() {
       if (user.role === "admin") {
         showToast(`Selamat Datang ${user.full_name}!`, "success");
         setTimeout(() => {
-          window.location.href = "/views/admin/admin-dashboard.html";
+          safeRedirect("/views/admin/admin-dashboard.html");
         }, 1500);
       } else if (user.role === "student") {
         showToast(`Selamat Datang ${user.full_name}`, "success");
         setTimeout(() => {
-          window.location.href = "/views/students/votes.html";
+          safeRedirect("/views/students/votes.html");
         }, 1500);
       } else {
-        hideLoadingState();
         showToast("Role user tidak dikenali", "error");
       }
     } catch (error) {
       console.error("Login error:", error);
-      hideLoadingState();
       showToast("Terjadi kesalahan sistem. Silakan coba lagi.", "error");
+    } finally {
+      // Re-enable form
+      loginForm.style.pointerEvents = "auto";
+      const submitBtn = loginForm.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.textContent = "Login";
+        submitBtn.disabled = false;
+      }
     }
   });
 }
@@ -259,23 +249,19 @@ function handleLogout() {
       );
       if (!confirmLogout) return;
 
-      showLoadingState();
-
       try {
         const result = await logoutUser();
 
         if (result.success) {
           showToast("Logout berhasil!", "success");
           setTimeout(() => {
-            window.location.href = "/views/login.html";
+            safeRedirect("/views/login.html");
           }, 1000);
         } else {
-          hideLoadingState();
           showToast(`Logout gagal: ${result.message}`, "error");
         }
       } catch (error) {
         console.error("Logout error:", error);
-        hideLoadingState();
         showToast("Terjadi kesalahan saat logout.", "error");
       }
     }
@@ -297,55 +283,49 @@ function handlePasswordToggle() {
   }
 }
 
-// Main initialization
-document.addEventListener("DOMContentLoaded", async () => {
-  // Show loading immediately
-  showLoadingState();
-
+// Initialize everything
+async function initialize() {
   try {
-    // Check if this is login page
-    const loginForm = document.getElementById("loginForm");
+    // Setup basic handlers first
+    handleLogout();
+    handlePasswordToggle();
 
-    if (loginForm) {
-      // This is login page - just setup form handlers
-      await handleLoginForm();
-      handlePasswordToggle();
-    } else {
-      // This is protected page - check authentication
-      const canAccess = await handlePageProtection();
-      if (!canAccess) {
-        return; // Will redirect, don't continue
-      }
+    // Check if this is login page
+    if (isLoginPage()) {
+      handleLoginForm();
+      document.body.style.visibility = "visible";
+      return;
     }
 
-    // Setup logout handler for all pages
-    handleLogout();
+    // Check if this is error page
+    if (isErrorPage()) {
+      document.body.style.visibility = "visible";
+      return;
+    }
 
-    // Hide loading after everything is set up
-    hideLoadingState();
+    // For protected pages, check auth
+    await handlePageProtection();
   } catch (error) {
     console.error("Initialization error:", error);
-    hideLoadingState();
-    showToast("Terjadi kesalahan sistem.", "error");
+    document.body.style.visibility = "visible";
   }
+}
+
+// DOM ready event
+document.addEventListener("DOMContentLoaded", () => {
+  // Hide body initially to prevent flash
+  document.body.style.visibility = "hidden";
+
+  // Initialize after a small delay
+  setTimeout(initialize, 100);
 });
 
-// Handle page visibility changes (when user comes back to tab)
-document.addEventListener("visibilitychange", () => {
-  if (!document.hidden && !isInitializing) {
-    // User came back to tab - recheck auth if needed
-    const loginForm = document.getElementById("loginForm");
-    if (!loginForm) {
-      // This is protected page, recheck auth
-      handlePageProtection();
-    }
-  }
-});
-
-// Prevent back button issues
+// Prevent back button cache issues
 window.addEventListener("pageshow", (event) => {
   if (event.persisted) {
-    // Page was loaded from cache, reload to ensure fresh state
+    // Reset state and reload if page was cached
+    authCheckComplete = false;
+    isRedirecting = false;
     location.reload();
   }
 });
