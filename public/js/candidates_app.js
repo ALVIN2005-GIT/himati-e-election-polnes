@@ -122,6 +122,10 @@ export function initializeApp() {
   // Load candidates for public view
   const publicContainer = document.getElementById("candidateList");
   if (publicContainer) {
+    loadCandidates(); // Load default candidates
+  }
+  const publicAdminContainer = document.getElementById("candidateAdminList");
+  if (publicAdminContainer) {
     populatePeriodSelector(); // Tambahkan ini
     loadCandidates(); // Load default candidates
   }
