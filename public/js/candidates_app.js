@@ -344,22 +344,29 @@ async function handleFormSubmit(e) {
       }
     }
 
-    // Reset form and update UI
+    // Reset form
     form.reset();
     editingCandidateId = null;
     document.getElementById("formTitle").textContent = "Tambah Kandidat Baru";
     document.getElementById("submitBtn").textContent = "Simpan";
 
-    // Clear photo preview
     const photoPreview = document.getElementById("photoPreview");
     if (photoPreview) {
       photoPreview.style.display = "none";
       photoPreview.src = "";
     }
 
-    // Reload candidate lists
-    await loadCandidates();
-    await loadCandidatesAdmin();
+    // PENTING: Update period selector setelah create/update
+    await populatePeriodSelector();
+    await populateAdminPeriodSelector();
+
+    // PENTING: Reload candidate lists dengan period yang sedang dipilih
+    const currentPeriod = document.getElementById("periodSelect")?.value;
+    const currentAdminPeriod =
+      document.getElementById("adminPeriodSelect")?.value;
+
+    await loadCandidates(currentPeriod || null);
+    await loadCandidatesAdmin(currentAdminPeriod || null);
   } catch (error) {
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
   }
@@ -368,10 +375,10 @@ async function handleFormSubmit(e) {
 // ======================= LOAD KANDIDAT (UNTUK PUBLIC VIEW) =======================
 
 // Tambahkan fungsi baru untuk mengisi dropdown periode
+// ======================= POPULATE PERIOD SELECTOR (DIPERBAIKI) =======================
 async function populatePeriodSelector() {
   try {
-    // Ambil semua kandidat untuk mendapatkan periode yang tersedia
-    const res = await getAllCandidates();
+    const res = await getAllCandidates(); // Ambil SEMUA kandidat tanpa filter
 
     if (!res.success || !res.data) return;
 
@@ -388,6 +395,9 @@ async function populatePeriodSelector() {
     const select = document.getElementById("periodSelect");
     if (!select) return;
 
+    // Simpan nilai yang sedang dipilih
+    const currentValue = select.value;
+
     // Clear existing options (keep "Semua Periode")
     select.innerHTML = '<option value="">Semua Periode</option>';
 
@@ -396,33 +406,43 @@ async function populatePeriodSelector() {
       const option = document.createElement("option");
       option.value = period;
       option.textContent = period;
-
-      // Set current period as selected
-      const currentYear = new Date().getFullYear();
-      if (period === currentYear + 1) {
-        option.selected = true;
-      }
-
       select.appendChild(option);
     });
 
-    // Add event listener
-    select.addEventListener("change", (e) => {
-      const selectedPeriod = e.target.value;
-      // Pastikan hanya pass period jika ada value
-      const periodToPass =
-        selectedPeriod && selectedPeriod.trim() !== "" ? selectedPeriod : null;
-
-      loadCandidates(periodToPass);
-
-      // Update header title
-      const headerTitle = document.querySelector(".header-title");
-      if (headerTitle) {
-        const baseTitleText = "Pemilihan HIMA TI";
-        const displayPeriod = selectedPeriod || new Date().getFullYear() + 1;
-        headerTitle.innerHTML = `${baseTitleText} <span id="electionPeriod">${displayPeriod}</span>`;
+    // Restore nilai yang dipilih sebelumnya, atau pilih tahun saat ini
+    if (currentValue && periods.includes(parseInt(currentValue))) {
+      select.value = currentValue;
+    } else {
+      const currentYear = new Date().getFullYear();
+      const defaultPeriod = currentYear + 1;
+      if (periods.includes(defaultPeriod)) {
+        select.value = defaultPeriod;
       }
-    });
+    }
+
+    // PENTING: Jangan tambahkan event listener berulang kali!
+    // Cek apakah sudah ada event listener
+    if (!select.hasAttribute("data-listener-added")) {
+      select.setAttribute("data-listener-added", "true");
+
+      select.addEventListener("change", (e) => {
+        const selectedPeriod = e.target.value;
+        const periodToPass =
+          selectedPeriod && selectedPeriod.trim() !== ""
+            ? selectedPeriod
+            : null;
+
+        loadCandidates(periodToPass);
+
+        // Update header title
+        const headerTitle = document.querySelector(".header-title");
+        if (headerTitle) {
+          const baseTitleText = "Pemilihan HIMA TI";
+          const displayPeriod = selectedPeriod || new Date().getFullYear() + 1;
+          headerTitle.innerHTML = `${baseTitleText} <span id="electionPeriod">${displayPeriod}</span>`;
+        }
+      });
+    }
   } catch (error) {
     console.error("Error populating period selector:", error);
   }
@@ -714,58 +734,65 @@ function closeModal() {
 // ======================= POPULATE ADMIN PERIOD SELECTOR =======================
 async function populateAdminPeriodSelector() {
   try {
-    // Get all candidates to extract available periods
-    const res = await getAllCandidates();
+    const res = await getAllCandidates(); // Ambil SEMUA kandidat tanpa filter
 
     if (!res.success || !res.data) return;
 
-    // Extract unique periods from candidate data
     const periods = [
       ...new Set(
         res.data.map((candidate) => {
           const year = new Date(candidate.created_at).getFullYear();
-          return year + 1; // Election year is next year
+          return year + 1;
         })
       ),
-    ].sort((a, b) => b - a); // Sort descending (newest first)
+    ].sort((a, b) => b - a);
 
     const select = document.getElementById("adminPeriodSelect");
     if (!select) return;
 
-    // Clear existing options (keep "Semua Periode")
+    // Simpan nilai yang sedang dipilih
+    const currentValue = select.value;
+
     select.innerHTML = '<option value="">Semua Periode</option>';
 
-    // Add period options
     periods.forEach((period) => {
       const option = document.createElement("option");
       option.value = period;
       option.textContent = period;
-
-      // Set current period as selected
-      const currentYear = new Date().getFullYear();
-      if (period === currentYear + 1) {
-        option.selected = true;
-      }
-
       select.appendChild(option);
     });
 
-    // Add event listener
-    select.addEventListener("change", (e) => {
-      const selectedPeriod = e.target.value;
-      // Pass period only if there's a value
-      const periodToPass =
-        selectedPeriod && selectedPeriod.trim() !== "" ? selectedPeriod : null;
-
-      loadCandidatesAdmin(periodToPass);
-
-      // Update header title
-      const headerTitle = document.querySelector(".title-card h1 span");
-      if (headerTitle) {
-        const displayPeriod = selectedPeriod || new Date().getFullYear() + 1;
-        headerTitle.textContent = displayPeriod;
+    // Restore nilai yang dipilih sebelumnya
+    if (currentValue && periods.includes(parseInt(currentValue))) {
+      select.value = currentValue;
+    } else {
+      const currentYear = new Date().getFullYear();
+      const defaultPeriod = currentYear + 1;
+      if (periods.includes(defaultPeriod)) {
+        select.value = defaultPeriod;
       }
-    });
+    }
+
+    // PENTING: Jangan tambahkan event listener berulang kali!
+    if (!select.hasAttribute("data-listener-added")) {
+      select.setAttribute("data-listener-added", "true");
+
+      select.addEventListener("change", (e) => {
+        const selectedPeriod = e.target.value;
+        const periodToPass =
+          selectedPeriod && selectedPeriod.trim() !== ""
+            ? selectedPeriod
+            : null;
+
+        loadCandidatesAdmin(periodToPass);
+
+        const headerTitle = document.querySelector(".title-card h1 span");
+        if (headerTitle) {
+          const displayPeriod = selectedPeriod || new Date().getFullYear() + 1;
+          headerTitle.textContent = displayPeriod;
+        }
+      });
+    }
   } catch (error) {
     console.error("Error populating admin period selector:", error);
   }
@@ -984,6 +1011,7 @@ async function handleEditCandidate(id) {
 }
 
 // ======================= HANDLE DELETE KANDIDAT =======================
+// ======================= UPDATE DELETE HANDLER (PERBAIKAN) =======================
 async function handleDeleteCandidate(id) {
   const confirmed = await showConfirmToast(
     "Yakin ingin menghapus kandidat ini?"
@@ -1001,8 +1029,18 @@ async function handleDeleteCandidate(id) {
     }
 
     showToast("Kandidat berhasil dihapus!", "success");
-    await loadCandidatesAdmin();
-    await loadCandidates();
+
+    // PENTING: Update period selector setelah delete
+    await populatePeriodSelector();
+    await populateAdminPeriodSelector();
+
+    // PENTING: Reload dengan period yang sedang dipilih
+    const currentPeriod = document.getElementById("periodSelect")?.value;
+    const currentAdminPeriod =
+      document.getElementById("adminPeriodSelect")?.value;
+
+    await loadCandidatesAdmin(currentAdminPeriod || null);
+    await loadCandidates(currentPeriod || null);
   } catch (error) {
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
   }
