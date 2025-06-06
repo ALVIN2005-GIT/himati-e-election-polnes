@@ -529,6 +529,8 @@ async function handleVoteClick(event) {
 
   // 🔒 Lock tombol agar tidak bisa diklik lagi
   event.target.disabled = true;
+  const targetIcons = (event.target.innerHTML =
+    '<i class="bi bi-crosshair me-1"></i>');
   const originalText = event.target.textContent;
   event.target.textContent = "Mencoblos...";
 
@@ -546,16 +548,14 @@ async function handleVoteClick(event) {
 
       // Kembalikan tombol
       event.target.disabled = false;
-      event.target.textContent =
-        `<i class="bi bi-crosshair me-1"></i>` + originalText;
+      event.target.textContent = targetIcons + originalText;
     }
   } catch (error) {
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
 
     // Kembalikan tombol
     event.target.disabled = false;
-    event.target.textContent =
-      `<i class="bi bi-crosshair me-1"></i>` + originalText;
+    event.target.textContent = targetIcons + originalText;
   }
 }
 
