@@ -372,6 +372,22 @@ async function handleFormSubmit(e) {
   }
 }
 
+/**
+ * Generate array of periods starting from 2026 for the next 10 years
+ * @returns {Array} Array of years from 2026 to 2035
+ */
+function generateDynamicPeriods() {
+  const startYear = 2026;
+  const yearCount = 10;
+  const periods = [];
+
+  for (let i = 0; i < yearCount; i++) {
+    periods.push(startYear + i);
+  }
+
+  return periods;
+}
+
 // ======================= PERBAIKAN 2: PERSISTENCE SELECTED PERIOD =======================
 
 // PERBAIKAN: Fungsi untuk save/load selected period
@@ -384,49 +400,76 @@ function loadSelectedPeriod(selectId) {
   return sessionStorage.getItem(`selected_period_${selectId}`) || "";
 }
 // PERBAIKAN: Update populatePeriodSelector dengan persistence
+// ======================= UPDATED POPULATE PERIOD SELECTOR =======================
 async function populatePeriodSelector() {
   try {
     const res = await getAllCandidates(); // Ambil SEMUA kandidat tanpa filter
 
-    if (!res.success || !res.data) return;
+    if (!res.success || !res.data) {
+      // Jika tidak ada data kandidat, tetap tampilkan periode dinamis
+      populateEmptyPeriodSelector("periodSelect");
+      return;
+    }
 
-    // Extract unique periods dari data kandidat
-    const periods = [
+    // Extract unique periods dari data kandidat yang ada
+    const existingPeriods = [
       ...new Set(
         res.data.map((candidate) => {
           const year = new Date(candidate.created_at).getFullYear();
           return year + 1;
         })
       ),
-    ].sort((a, b) => b - a);
+    ];
+
+    // Generate dynamic periods (2026-2035)
+    const dynamicPeriods = generateDynamicPeriods();
+
+    // Gabungkan existing periods dengan dynamic periods, lalu sort
+    const allPeriods = [
+      ...new Set([...existingPeriods, ...dynamicPeriods]),
+    ].sort((a, b) => a - b);
 
     const select = document.getElementById("periodSelect");
     if (!select) return;
 
-    // PERBAIKAN: Load saved period
+    // Load saved period
     const savedPeriod = loadSelectedPeriod("periodSelect");
 
+    // Clear dan populate options
     select.innerHTML = '<option value="">Semua Periode</option>';
 
-    periods.forEach((period) => {
+    allPeriods.forEach((period) => {
       const option = document.createElement("option");
       option.value = period;
-      option.textContent = period;
+
+      // Tandai periode yang tidak memiliki kandidat
+      const hasCandidates = existingPeriods.includes(period);
+      option.textContent = hasCandidates
+        ? `${period}`
+        : `${period} (Belum ada kandidat)`;
+
+      // Tambahkan class untuk styling jika diperlukan
+      if (!hasCandidates) {
+        option.className = "no-candidates";
+      }
+
       select.appendChild(option);
     });
 
-    // PERBAIKAN: Set saved period atau default
-    if (savedPeriod && periods.includes(parseInt(savedPeriod))) {
+    // Tambahkan scroll styling ke select
+    select.style.maxHeight = "200px";
+    select.style.overflowY = "auto";
+
+    // Set saved period atau default
+    if (savedPeriod && allPeriods.includes(parseInt(savedPeriod))) {
       select.value = savedPeriod;
     } else if (savedPeriod === "") {
       select.value = "";
     } else {
-      const currentYear = new Date().getFullYear();
-      const defaultPeriod = currentYear + 1;
-      if (periods.includes(defaultPeriod)) {
-        select.value = defaultPeriod;
-        saveSelectedPeriod("periodSelect", defaultPeriod);
-      }
+      // Default ke tahun 2026 atau tahun pertama yang tersedia
+      const defaultPeriod = 2026;
+      select.value = defaultPeriod;
+      saveSelectedPeriod("periodSelect", defaultPeriod);
     }
 
     // Event listener dengan persistence
@@ -436,7 +479,7 @@ async function populatePeriodSelector() {
       select.addEventListener("change", (e) => {
         const selectedPeriod = e.target.value;
 
-        // PERBAIKAN: Save selected period
+        // Save selected period
         saveSelectedPeriod("periodSelect", selectedPeriod);
 
         const periodToPass =
@@ -449,39 +492,44 @@ async function populatePeriodSelector() {
         const headerTitle = document.querySelector(".header-title");
         if (headerTitle) {
           const baseTitleText = "Pemilihan HIMA TI";
-          const displayPeriod = selectedPeriod || new Date().getFullYear() + 1;
+          const displayPeriod = selectedPeriod || 2026;
           headerTitle.innerHTML = `${baseTitleText} <span id="electionPeriod">${displayPeriod}</span>`;
         }
       });
     }
 
-    // PERBAIKAN: Load candidates dengan saved period saat pertama kali
+    // Load candidates dengan saved period saat pertama kali
     const initialPeriod =
       select.value && select.value.trim() !== "" ? select.value : null;
     loadCandidates(initialPeriod);
   } catch (error) {
     console.error("Error populating period selector:", error);
+    // Fallback ke periode dinamis jika ada error
+    populateEmptyPeriodSelector("periodSelect");
   }
 }
 
-// ======================= PERBAIKAN 1: FILTER PERIOD DI LOAD FUNCTIONS =======================
-
+// ======================= UPDATED LOAD CANDIDATES WITH BETTER MESSAGING =======================
 export async function loadCandidates(period = null) {
   const container = document.getElementById("candidateList");
   if (!container) return;
 
   try {
-    // PERBAIKAN: Ambil SEMUA data dulu, lalu filter di frontend
-    const res = await getAllCandidates(); // Tanpa parameter period
+    // Ambil SEMUA data dulu, lalu filter di frontend
+    const res = await getAllCandidates();
 
     if (!res.success || !res.data || res.data == null) {
+      container.innerHTML = `<div class='no-data'>
+        <i class='bi bi-exclamation-circle'></i>
+        <p>Gagal mengambil data kandidat</p>
+      </div>`;
       showToast("Gagal mengambil data kandidat", "error");
       return;
     }
 
     let filteredData = res.data;
 
-    // PERBAIKAN: Filter berdasarkan period di frontend
+    // Filter berdasarkan period di frontend
     if (period && period.trim() !== "") {
       filteredData = res.data.filter((candidate) => {
         const candidateYear = new Date(candidate.created_at).getFullYear() + 1;
@@ -491,13 +539,27 @@ export async function loadCandidates(period = null) {
 
     container.innerHTML = "";
 
-    // PERBAIKAN: Pesan yang lebih spesifik
+    // Pesan yang lebih informatif
     if (filteredData.length === 0) {
-      const noCandidateMsg =
-        period && period.trim() !== ""
-          ? `Tidak ada kandidat untuk periode ${period}.`
-          : "Tidak ada kandidat tersedia.";
-      container.innerHTML = `<p class='no-data'>${noCandidateMsg}</p>`;
+      let noCandidateMsg;
+      if (period && period.trim() !== "") {
+        noCandidateMsg = `
+          <div class='no-data'>
+            <i class='bi bi-calendar-x'></i>
+            <h3>Belum Ada Kandidat</h3>
+            <p>Belum ada kandidat yang terdaftar untuk periode ${period}.</p>
+            <small>Silakan pilih periode lain atau tunggu hingga ada kandidat yang mendaftar.</small>
+          </div>`;
+      } else {
+        noCandidateMsg = `
+          <div class='no-data'>
+            <i class='bi bi-person-x'></i>
+            <h3>Tidak Ada Kandidat</h3>
+            <p>Belum ada kandidat yang terdaftar dalam sistem.</p>
+            <small>Silakan hubungi administrator untuk informasi lebih lanjut.</small>
+          </div>`;
+      }
+      container.innerHTML = noCandidateMsg;
       return;
     }
 
@@ -506,7 +568,7 @@ export async function loadCandidates(period = null) {
       (a, b) => a.number - b.number
     );
 
-    // Sisa kode rendering tetap sama...
+    // Render candidates (kode rendering tetap sama seperti sebelumnya)
     const candidatesGrid = document.createElement("div");
     candidatesGrid.className = "row g-4 justify-content-center";
 
@@ -563,7 +625,7 @@ export async function loadCandidates(period = null) {
 
     container.appendChild(candidatesGrid);
 
-    // Add event listeners
+    // Add event listeners (tetap sama seperti sebelumnya)
     const candidatePhotos = container.querySelectorAll(".candidate-photo img");
     candidatePhotos.forEach((img, index) => {
       img.addEventListener("click", () => {
@@ -583,6 +645,11 @@ export async function loadCandidates(period = null) {
         : `Data kandidat berhasil dimuat (${filteredData.length} kandidat)`;
     showToast(successMsg, "success");
   } catch (error) {
+    container.innerHTML = `<div class='no-data'>
+      <i class='bi bi-exclamation-triangle'></i>
+      <p>Terjadi kesalahan saat memuat data</p>
+      <small>${error.message}</small>
+    </div>`;
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
   }
 }
@@ -726,59 +793,86 @@ function closeModal() {
   }
 }
 
-// ======================= POPULATE ADMIN PERIOD SELECTOR =======================
-// PERBAIKAN: Update populateAdminPeriodSelector dengan persistence
+// ======================= UPDATED POPULATE ADMIN PERIOD SELECTOR =======================
 async function populateAdminPeriodSelector() {
   try {
     const res = await getAllCandidates();
 
-    if (!res.success || !res.data) return;
+    if (!res.success || !res.data) {
+      // Jika tidak ada data kandidat, tetap tampilkan periode dinamis
+      populateEmptyPeriodSelector("adminPeriodSelect");
+      return;
+    }
 
-    const periods = [
+    // Extract unique periods dari data kandidat yang ada
+    const existingPeriods = [
       ...new Set(
         res.data.map((candidate) => {
           const year = new Date(candidate.created_at).getFullYear();
           return year + 1;
         })
       ),
-    ].sort((a, b) => b - a);
+    ];
+
+    // Generate dynamic periods (2026-2035)
+    const dynamicPeriods = generateDynamicPeriods();
+
+    // Gabungkan existing periods dengan dynamic periods, lalu sort
+    const allPeriods = [
+      ...new Set([...existingPeriods, ...dynamicPeriods]),
+    ].sort((a, b) => a - b);
 
     const select = document.getElementById("adminPeriodSelect");
     if (!select) return;
 
-    // PERBAIKAN: Load saved period
+    // Load saved period
     const savedPeriod = loadSelectedPeriod("adminPeriodSelect");
 
+    // Clear dan populate options
     select.innerHTML = '<option value="">Semua Periode</option>';
 
-    periods.forEach((period) => {
+    allPeriods.forEach((period) => {
       const option = document.createElement("option");
       option.value = period;
-      option.textContent = period;
+
+      // Tandai periode yang tidak memiliki kandidat
+      const hasCandidates = existingPeriods.includes(period);
+      option.textContent = hasCandidates
+        ? `${period}`
+        : `${period} (Belum ada kandidat)`;
+
+      // Tambahkan class untuk styling jika diperlukan
+      if (!hasCandidates) {
+        option.className = "no-candidates";
+      }
+
       select.appendChild(option);
     });
 
-    // PERBAIKAN: Set saved period atau default
-    if (savedPeriod && periods.includes(parseInt(savedPeriod))) {
+    // Tambahkan scroll styling ke select
+    select.style.maxHeight = "200px";
+    select.style.overflowY = "auto";
+
+    // Set saved period atau default
+    if (savedPeriod && allPeriods.includes(parseInt(savedPeriod))) {
       select.value = savedPeriod;
     } else if (savedPeriod === "") {
       select.value = "";
     } else {
-      const currentYear = new Date().getFullYear();
-      const defaultPeriod = currentYear + 1;
-      if (periods.includes(defaultPeriod)) {
-        select.value = defaultPeriod;
-        saveSelectedPeriod("adminPeriodSelect", defaultPeriod);
-      }
+      // Default ke tahun 2026
+      const defaultPeriod = 2026;
+      select.value = defaultPeriod;
+      saveSelectedPeriod("adminPeriodSelect", defaultPeriod);
     }
 
+    // Event listener dengan persistence
     if (!select.hasAttribute("data-listener-added")) {
       select.setAttribute("data-listener-added", "true");
 
       select.addEventListener("change", (e) => {
         const selectedPeriod = e.target.value;
 
-        // PERBAIKAN: Save selected period
+        // Save selected period
         saveSelectedPeriod("adminPeriodSelect", selectedPeriod);
 
         const periodToPass =
@@ -787,24 +881,95 @@ async function populateAdminPeriodSelector() {
             : null;
         loadCandidatesAdmin(periodToPass);
 
+        // Update header title
         const headerTitle = document.querySelector(".title-card h1 span");
         if (headerTitle) {
-          const displayPeriod = selectedPeriod || new Date().getFullYear() + 1;
+          const displayPeriod = selectedPeriod || 2026;
           headerTitle.textContent = displayPeriod;
         }
       });
     }
 
-    // PERBAIKAN: Load candidates dengan saved period saat pertama kali
+    // Load candidates dengan saved period saat pertama kali
     const initialPeriod =
       select.value && select.value.trim() !== "" ? select.value : null;
     loadCandidatesAdmin(initialPeriod);
   } catch (error) {
     console.error("Error populating admin period selector:", error);
+    // Fallback ke periode dinamis jika ada error
+    populateEmptyPeriodSelector("adminPeriodSelect");
   }
 }
-// ======================= LOAD KANDIDAT (UNTUK ADMIN) =======================
-// ======================= LOAD KANDIDAT (UNTUK ADMIN) =======================
+
+// ======================= HELPER FUNCTION FOR EMPTY PERIOD SELECTOR =======================
+/**
+ * Populate period selector when no candidates exist yet
+ * @param {string} selectId - ID of the select element
+ */
+function populateEmptyPeriodSelector(selectId) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+
+  const dynamicPeriods = generateDynamicPeriods();
+  const savedPeriod = loadSelectedPeriod(selectId);
+
+  select.innerHTML = '<option value="">Semua Periode</option>';
+
+  dynamicPeriods.forEach((period) => {
+    const option = document.createElement("option");
+    option.value = period;
+    option.textContent = `${period} (Belum ada kandidat)`;
+    option.className = "no-candidates";
+    select.appendChild(option);
+  });
+
+  // Tambahkan scroll styling
+  select.style.maxHeight = "200px";
+  select.style.overflowY = "auto";
+
+  // Set default atau saved period
+  if (savedPeriod && dynamicPeriods.includes(parseInt(savedPeriod))) {
+    select.value = savedPeriod;
+  } else {
+    select.value = 2026; // Default ke 2026
+    saveSelectedPeriod(selectId, 2026);
+  }
+
+  // Add event listener jika belum ada
+  if (!select.hasAttribute("data-listener-added")) {
+    select.setAttribute("data-listener-added", "true");
+
+    select.addEventListener("change", (e) => {
+      const selectedPeriod = e.target.value;
+      saveSelectedPeriod(selectId, selectedPeriod);
+
+      const periodToPass =
+        selectedPeriod && selectedPeriod.trim() !== "" ? selectedPeriod : null;
+
+      if (selectId === "periodSelect") {
+        loadCandidates(periodToPass);
+
+        // Update header title
+        const headerTitle = document.querySelector(".header-title");
+        if (headerTitle) {
+          const baseTitleText = "Pemilihan HIMA TI";
+          const displayPeriod = selectedPeriod || 2026;
+          headerTitle.innerHTML = `${baseTitleText} <span id="electionPeriod">${displayPeriod}</span>`;
+        }
+      } else if (selectId === "adminPeriodSelect") {
+        loadCandidatesAdmin(periodToPass);
+
+        // Update admin header title
+        const headerTitle = document.querySelector(".title-card h1 span");
+        if (headerTitle) {
+          const displayPeriod = selectedPeriod || 2026;
+          headerTitle.textContent = displayPeriod;
+        }
+      }
+    });
+  }
+}
+// ======================= UPDATED LOAD CANDIDATES ADMIN =======================
 export async function loadCandidatesAdmin(period = null) {
   const container = document.getElementById("adminCandidateList");
   if (!container) return;
@@ -812,17 +977,21 @@ export async function loadCandidatesAdmin(period = null) {
   try {
     showToast("Memuat data kandidat untuk admin...", "info");
 
-    // PERBAIKAN: Ambil SEMUA data dulu, lalu filter di frontend
-    const res = await getAllCandidates(); // Tanpa parameter period
+    // Ambil SEMUA data dulu, lalu filter di frontend
+    const res = await getAllCandidates();
 
     if (!res.success || res.data == null) {
+      container.innerHTML = `<div class='no-data'>
+        <i class='bi bi-exclamation-circle'></i>
+        <p>Gagal mengambil data kandidat</p>
+      </div>`;
       showToast("Gagal mengambil data kandidat", "error");
       return;
     }
 
     let filteredData = res.data;
 
-    // PERBAIKAN: Filter berdasarkan period di frontend
+    // Filter berdasarkan period di frontend
     if (period && period.trim() !== "") {
       filteredData = res.data.filter((candidate) => {
         const candidateYear = new Date(candidate.created_at).getFullYear() + 1;
@@ -833,11 +1002,25 @@ export async function loadCandidatesAdmin(period = null) {
     container.innerHTML = "";
 
     if (filteredData.length === 0) {
-      const noCandidateMsg =
-        period && period.trim() !== ""
-          ? `Tidak ada kandidat untuk periode ${period}.`
-          : "Tidak ada kandidat tersedia.";
-      container.innerHTML = `<p class='no-data'>${noCandidateMsg}</p>`;
+      let noCandidateMsg;
+      if (period && period.trim() !== "") {
+        noCandidateMsg = `
+          <div class='no-data'>
+            <i class='bi bi-calendar-x'></i>
+            <h3>Belum Ada Kandidat</h3>
+            <p>Belum ada kandidat yang terdaftar untuk periode ${period}.</p>
+            <small>Anda dapat menambah kandidat baru menggunakan form di atas.</small>
+          </div>`;
+      } else {
+        noCandidateMsg = `
+          <div class='no-data'>
+            <i class='bi bi-person-x'></i>
+            <h3>Tidak Ada Kandidat</h3>
+            <p>Belum ada kandidat yang terdaftar dalam sistem.</p>
+            <small>Mulai dengan menambah kandidat baru menggunakan form di atas.</small>
+          </div>`;
+      }
+      container.innerHTML = noCandidateMsg;
       return;
     }
 
@@ -846,7 +1029,7 @@ export async function loadCandidatesAdmin(period = null) {
       (a, b) => a.number - b.number
     );
 
-    // Sisa kode table rendering tetap sama...
+    // Render table (kode table rendering tetap sama seperti sebelumnya)
     const table = document.createElement("table");
     table.className = "candidate-table";
     table.innerHTML = `
@@ -914,7 +1097,7 @@ export async function loadCandidatesAdmin(period = null) {
 
     container.appendChild(table);
 
-    // Add event listeners
+    // Add event listeners (tetap sama seperti sebelumnya)
     container.querySelectorAll(".edit-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = btn.dataset.id;
@@ -935,6 +1118,11 @@ export async function loadCandidatesAdmin(period = null) {
         : `Data kandidat admin berhasil dimuat (${filteredData.length} kandidat)`;
     showToast(successMsg, "success");
   } catch (error) {
+    container.innerHTML = `<div class='no-data'>
+      <i class='bi bi-exclamation-triangle'></i>
+      <p>Terjadi kesalahan saat memuat data</p>
+      <small>${error.message}</small>
+    </div>`;
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
   }
 }
