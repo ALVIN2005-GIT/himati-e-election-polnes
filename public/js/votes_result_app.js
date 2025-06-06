@@ -166,7 +166,9 @@ export function setupWebSocket() {
     wsConnection.close();
   }
 
-  wsConnection = new WebSocket("ws://localhost:5410/ws/votes");
+  wsConnection = new WebSocket(
+    "https://api-hima-ti-e-election.sgp.dom.my.id/ws/votes"
+  );
 
   wsConnection.onopen = () => {
     reconnectAttempts = 0;
