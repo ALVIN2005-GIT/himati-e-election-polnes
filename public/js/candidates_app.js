@@ -18,11 +18,9 @@ let editingCandidateId = null; // To track which candidate is being edited
 // ======================= BIND EVENT SAAT DOM SIAP =======================
 document.addEventListener("DOMContentLoaded", () => {
   const currentYear = new Date().getFullYear();
-
-  // Menentukan tahun periode (tahun depan)
   const electionYear = currentYear + 1;
 
-  // Menampilkan tahun di elemen dengan id "electionPeriod"
+  // Set election period display
   const electionPeriodElement = document.getElementById("electionPeriod");
   if (electionPeriodElement) {
     electionPeriodElement.textContent = electionYear;
@@ -118,6 +116,15 @@ function showConfirmToast(message) {
 
 // ======================= INITIALIZE APP =======================
 function initializeApp() {
+  populatePeriodSelector();
+
+  const periodSelector = document.getElementById("periodSelector");
+  if (periodSelector) {
+    periodSelector.addEventListener("change", handlePeriodChange);
+  }
+
+  const currentPeriod = new Date().getFullYear() + 1;
+  loadCandidates(currentPeriod);
   // Load candidates for public view
   const publicContainer = document.getElementById("candidateList");
   if (publicContainer) {
@@ -362,13 +369,65 @@ async function handleFormSubmit(e) {
   }
 }
 
+// ======================= PERIOD HANDLING =======================
+let availablePeriods = [];
+
+// Function to populate period selector
+async function populatePeriodSelector() {
+  try {
+    // Get all candidates to extract unique periods
+    const res = await getAllCandidates();
+
+    if (res.success && res.data) {
+      // Extract unique periods and sort them
+      const periods = [
+        ...new Set(
+          res.data.map(
+            (candidate) => candidate.period || new Date().getFullYear() + 1
+          )
+        ),
+      ];
+      availablePeriods = periods.sort((a, b) => b - a); // Sort descending (newest first)
+
+      const selector = document.getElementById("periodSelector");
+      if (selector) {
+        // Clear existing options except "Semua Periode"
+        selector.innerHTML = '<option value="">Semua Periode</option>';
+
+        // Add period options
+        availablePeriods.forEach((period) => {
+          const option = document.createElement("option");
+          option.value = period;
+          option.textContent = period;
+          selector.appendChild(option);
+        });
+
+        // Set current period as default
+        const currentPeriod = new Date().getFullYear() + 1;
+        if (availablePeriods.includes(currentPeriod)) {
+          selector.value = currentPeriod;
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error populating period selector:", error);
+  }
+}
+
+// Handle period selection change
+function handlePeriodChange(event) {
+  const selectedPeriod = event.target.value;
+  loadCandidates(selectedPeriod || null);
+}
+
 // ======================= LOAD KANDIDAT (UNTUK PUBLIC VIEW) =======================
 export async function loadCandidates() {
   const container = document.getElementById("candidateList");
+
   if (!container) return;
 
   try {
-    const res = await getAllCandidates();
+    const res = await getAllCandidates(period);
 
     if (!res.success || !res.data || res.data == null) {
       showToast("Gagal mengambil data kandidat", "error");
@@ -378,8 +437,10 @@ export async function loadCandidates() {
     container.innerHTML = "";
 
     if (res.data.length === 0) {
-      container.innerHTML =
-        "<p class='no-data'>Tidak ada kandidat tersedia.</p>";
+      const noCandidatesMsg = period
+        ? `Tidak ada kandidat untuk periode ${period}.`
+        : "Tidak ada kandidat tersedia.";
+      container.innerHTML = `<p class='no-data'>${noCandidatesMsg}</p>`;
       return;
     }
 
@@ -418,9 +479,6 @@ export async function loadCandidates() {
 
       const card = document.createElement("div");
       card.className = "candidate-card";
-
-      // card.innerHTML = `
-      //   <div class="candidate-name">${candidate.id || ""}</div>
 
       card.innerHTML = `
       <div class="candidate-number">${candidate.number || ""}</div>
