@@ -148,11 +148,6 @@ async function handlePageProtection() {
     return;
   }
 
-  if (path.includes("/students/") && user.role !== "student") {
-    safeRedirect("/views/403.html");
-    return;
-  }
-
   // Access granted - show the page
   document.body.style.visibility = "visible";
 }
