@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (electionPeriodElement) {
     const currentYear = new Date().getFullYear();
     // Changed to add 1 year to both start and end year
-    electionPeriodEl.textContent = `${currentYear + 1}/${currentYear + 2}`;
+    electionPeriodElement.textContent = `${currentYear + 1}/${currentYear + 2}`;
   }
 
   // Update footer juga jika perlu
