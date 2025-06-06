@@ -98,6 +98,17 @@
           <div class="header-subtitle">
             Daftar Kandidat Ketua dan Wakil Ketua HIMA TI
           </div>
+          <div class="period-selector-container mb-4">
+            <label for="periodSelect" class="form-label">Pilih Periode:</label>
+            <select
+              id="periodSelect"
+              class="form-select form-select-sm"
+              style="max-width: 200px; margin: 0 auto"
+            >
+              <option value="">Semua Periode</option>
+              <!-- Options akan diisi dinamis -->
+            </select>
+          </div>
           <div class="header-line"></div>
         </div>
         <div class="time-info-container">
@@ -145,10 +156,10 @@
     <!-- JavaScript -->
     <script type="module" src="/public/js/candidates_app.js"></script>
     <script type="module">
-      import { loadCandidates } from "/public/js/candidates_app.js";
+      import { initializeApp } from "/public/js/candidates_app.js";
 
       document.addEventListener("DOMContentLoaded", () => {
-        loadCandidates();
+        initializeApp();
       });
 
       function showMessage(type, message) {
