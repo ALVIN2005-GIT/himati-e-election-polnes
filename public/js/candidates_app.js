@@ -427,7 +427,7 @@ async function populatePeriodSelector() {
   }
 }
 
-export async function loadCandidates() {
+export async function loadCandidates(period = null) {
   const container = document.getElementById("candidateList");
 
   if (!container) return;
