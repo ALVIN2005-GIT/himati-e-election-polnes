@@ -408,13 +408,17 @@ async function populatePeriodSelector() {
     // Add event listener
     select.addEventListener("change", (e) => {
       const selectedPeriod = e.target.value;
-      loadCandidates(selectedPeriod || null);
+      // Pastikan hanya pass period jika ada value
+      const periodToPass =
+        selectedPeriod && selectedPeriod.trim() !== "" ? selectedPeriod : null;
+
+      loadCandidates(periodToPass);
 
       // Update header title
       const headerTitle = document.querySelector(".header-title");
       if (headerTitle) {
         const baseTitleText = "Pemilihan HIMA TI";
-        const displayPeriod = selectedPeriod || currentYear + 1;
+        const displayPeriod = selectedPeriod || new Date().getFullYear() + 1;
         headerTitle.innerHTML = `${baseTitleText} <span id="electionPeriod">${displayPeriod}</span>`;
       }
     });
@@ -439,9 +443,11 @@ export async function loadCandidates() {
     container.innerHTML = "";
 
     if (res.data.length === 0) {
-      const noCandidateMsg = period
-        ? `Tidak ada kandidat untuk periode ${period}.`
-        : "Tidak ada kandidat tersedia.";
+      // Perbaikan: cek apakah period kosong atau null
+      const noCandidateMsg =
+        period && period.trim() !== ""
+          ? `Tidak ada kandidat untuk periode ${period}.`
+          : "Tidak ada kandidat tersedia.";
       container.innerHTML = `<p class='no-data'>${noCandidateMsg}</p>`;
       return;
     }
@@ -554,8 +560,12 @@ export async function loadCandidates() {
     voteButtons.forEach((button) => {
       button.addEventListener("click", handleVoteClick);
     });
-
-    showToast("Data kandidat berhasil dimuat", "success");
+    // Perbaikan toast message
+    const successMsg =
+      period && period.trim() !== ""
+        ? `Data kandidat periode ${period} berhasil dimuat`
+        : "Data kandidat berhasil dimuat";
+    showToast(successMsg, "success");
   } catch (error) {
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
   }

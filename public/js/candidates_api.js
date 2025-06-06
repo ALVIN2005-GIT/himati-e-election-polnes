@@ -143,7 +143,10 @@ export async function createCandidate(candidateData) {
 export async function getAllCandidates(period = null) {
   try {
     const url = new URL(`${API_BASE_URL}/api/candidates`);
-    if (period) url.searchParams.append("period", period);
+    // Hanya append period jika ada dan tidak kosong
+    if (period && period.toString().trim() !== "") {
+      url.searchParams.append("period", period);
+    }
 
     const response = await fetch(url.toString(), {
       method: "GET",
