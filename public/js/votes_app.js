@@ -20,21 +20,21 @@ function initializeCountdown() {
     const now = new Date();
     const currentYear = now.getFullYear();
 
-    // Cek apakah event tahun ini sudah lewat (setelah 22 November)
-    const thisYearEndDate = new Date(currentYear, 10, 22, 19, 1, 0); // 22 Nov tahun ini
+    // Cek apakah event tahun ini sudah lewat (setelah 6 Oktober)
+    const thisYearEndDate = new Date(currentYear, 9, 6, 16, 20, 0); // 6 Oktober tahun ini
 
     let eventYear;
     if (now > thisYearEndDate) {
-      // Jika sudah lewat 22 Nov, gunakan tahun depan
+      // Jika sudah lewat 6 Oktober, gunakan tahun depan
       eventYear = currentYear + 1;
     } else {
-      // Jika belum lewat 22 Nov, gunakan tahun ini
+      // Jika belum lewat 6 Oktober, gunakan tahun ini
       eventYear = currentYear;
     }
 
     return {
       startDate: new Date(eventYear, 4, 25, 20, 20, 0), // 25 Mei, 20:20:00
-      endDate: new Date(eventYear, 9, 6, 16, 20, 0), // 22 Nov, 19:01:00
+      endDate: new Date(eventYear, 9, 6, 16, 20, 0), // 6 Oktober, 16:20:00
     };
   };
 
@@ -189,31 +189,47 @@ function updateRemainingTimeWithPrecision(nowMs, endMs) {
   const timeElement = document.getElementById("timeRemaining");
   if (!timeElement) return;
 
-  // Jika belum dimulai atau sudah berakhir
-  if (nowMs < window.votingStartDate.getTime() || nowMs >= endMs) {
+  const startMs = window.votingStartDate.getTime();
+
+  let distance;
+  let isVotingActive = false;
+
+  // Jika sebelum voting dimulai, tidak tampilkan remaining time
+  if (nowMs < startMs) {
     timeElement.textContent = "00:00:00";
     timeElement.classList.remove("time-critical");
+    timeElement.style.color = "#ff6b35"; // Orange untuk menunggu
+    return;
+  }
+  // Jika voting sedang berlangsung, hitung waktu tersisa
+  else if (nowMs >= startMs && nowMs < endMs) {
+    distance = endMs - nowMs;
+    isVotingActive = true;
+    timeElement.style.color = "#28a745"; // Hijau untuk aktif
+  }
+  // Jika voting sudah berakhir
+  else {
+    timeElement.textContent = "00:00:00";
+    timeElement.classList.remove("time-critical");
+    timeElement.style.color = "#dc3545"; // Merah untuk berakhir
     return;
   }
 
-  const distance = endMs - nowMs;
+  // Hitung jam, menit, detik dengan batasan 24 jam
+  const totalHours = Math.floor(distance / (1000 * 60 * 60));
+  const hours = totalHours % 24; // Batasi jam maksimal 24 jam
+  const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-  const hours = Math.floor(
-    (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-  )
-    .toString()
-    .padStart(2, "0");
-  const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
-    .toString()
-    .padStart(2, "0");
-  const seconds = Math.floor((distance % (1000 * 60)) / 1000)
-    .toString()
-    .padStart(2, "0");
+  // Format dengan leading zero
+  const hoursStr = hours.toString().padStart(2, "0");
+  const minutesStr = minutes.toString().padStart(2, "0");
+  const secondsStr = seconds.toString().padStart(2, "0");
 
-  timeElement.textContent = `${hours}:${minutes}:${seconds}`;
+  timeElement.textContent = `${hoursStr}:${minutesStr}:${secondsStr}`;
 
   // Logika untuk membuat countdown merah jika kurang dari 5 menit
-  if (distance < 5 * 60 * 1000) {
+  if (isVotingActive && distance < 5 * 60 * 1000) {
     // 5 menit = 5 * 60 * 1000 ms
     timeElement.classList.add("time-critical");
   } else {

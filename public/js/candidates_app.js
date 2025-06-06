@@ -19,13 +19,12 @@ let editingCandidateId = null; // To track which candidate is being edited
 document.addEventListener("DOMContentLoaded", () => {
   const currentYear = new Date().getFullYear();
 
-  // Menentukan tahun periode (tahun depan)
-  const electionYear = currentYear + 1;
-
   // Menampilkan tahun di elemen dengan id "electionPeriod"
   const electionPeriodElement = document.getElementById("electionPeriod");
   if (electionPeriodElement) {
-    electionPeriodElement.textContent = electionYear;
+    const currentYear = new Date().getFullYear();
+    // Changed to add 1 year to both start and end year
+    electionPeriodEl.textContent = `${currentYear + 1}/${currentYear + 2}`;
   }
 
   // Update footer juga jika perlu
