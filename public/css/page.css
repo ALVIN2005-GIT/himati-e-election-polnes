@@ -1,0 +1,4 @@
+body {
+  visibility: hidden;
+  transition: visibility 0.1s;
+}
