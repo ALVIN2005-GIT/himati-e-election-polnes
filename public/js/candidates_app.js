@@ -117,11 +117,13 @@ function showConfirmToast(message) {
 }
 
 // ======================= INITIALIZE APP =======================
-function initializeApp() {
+async function initializeApp() {
+  // Load candidates for public view
   // Load candidates for public view
   const publicContainer = document.getElementById("candidateList");
   if (publicContainer) {
-    loadCandidates();
+    populatePeriodSelector(); // Tambahkan ini
+    loadCandidates(); // Load default candidates
   }
 
   // Load candidates for admin view
@@ -363,13 +365,71 @@ async function handleFormSubmit(e) {
 }
 
 // ======================= LOAD KANDIDAT (UNTUK PUBLIC VIEW) =======================
+
+// Tambahkan fungsi baru untuk mengisi dropdown periode
+async function populatePeriodSelector() {
+  try {
+    // Ambil semua kandidat untuk mendapatkan periode yang tersedia
+    const res = await getAllCandidates();
+
+    if (!res.success || !res.data) return;
+
+    // Extract unique periods dari data kandidat
+    const periods = [
+      ...new Set(
+        res.data.map((candidate) => {
+          const year = new Date(candidate.created_at).getFullYear();
+          return year + 1; // Election year is next year
+        })
+      ),
+    ].sort((a, b) => b - a); // Sort descending (newest first)
+
+    const select = document.getElementById("periodSelect");
+    if (!select) return;
+
+    // Clear existing options (keep "Semua Periode")
+    select.innerHTML = '<option value="">Semua Periode</option>';
+
+    // Add period options
+    periods.forEach((period) => {
+      const option = document.createElement("option");
+      option.value = period;
+      option.textContent = period;
+
+      // Set current period as selected
+      const currentYear = new Date().getFullYear();
+      if (period === currentYear + 1) {
+        option.selected = true;
+      }
+
+      select.appendChild(option);
+    });
+
+    // Add event listener
+    select.addEventListener("change", (e) => {
+      const selectedPeriod = e.target.value;
+      loadCandidates(selectedPeriod || null);
+
+      // Update header title
+      const headerTitle = document.querySelector(".header-title");
+      if (headerTitle) {
+        const baseTitleText = "Pemilihan HIMA TI";
+        const displayPeriod = selectedPeriod || currentYear + 1;
+        headerTitle.innerHTML = `${baseTitleText} <span id="electionPeriod">${displayPeriod}</span>`;
+      }
+    });
+  } catch (error) {
+    console.error("Error populating period selector:", error);
+  }
+}
+
 export async function loadCandidates() {
   const container = document.getElementById("candidateList");
 
   if (!container) return;
 
   try {
-    const res = await getAllCandidates();
+    const res = await getAllCandidates(period);
 
     if (!res.success || !res.data || res.data == null) {
       showToast("Gagal mengambil data kandidat", "error");
@@ -379,8 +439,10 @@ export async function loadCandidates() {
     container.innerHTML = "";
 
     if (res.data.length === 0) {
-      container.innerHTML =
-        "<p class='no-data'>Tidak ada kandidat tersedia.</p>";
+      const noCandidateMsg = period
+        ? `Tidak ada kandidat untuk periode ${period}.`
+        : "Tidak ada kandidat tersedia.";
+      container.innerHTML = `<p class='no-data'>${noCandidateMsg}</p>`;
       return;
     }
 
