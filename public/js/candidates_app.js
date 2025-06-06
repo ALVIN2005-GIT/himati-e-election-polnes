@@ -17,8 +17,6 @@ let editingCandidateId = null; // To track which candidate is being edited
 
 // ======================= BIND EVENT SAAT DOM SIAP =======================
 document.addEventListener("DOMContentLoaded", () => {
-  const currentYear = new Date().getFullYear();
-
   // Menampilkan tahun di elemen dengan id "electionPeriod"
   const electionPeriodElement = document.getElementById("electionPeriod");
   if (electionPeriodElement) {
