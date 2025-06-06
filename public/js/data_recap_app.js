@@ -129,6 +129,28 @@ class DataRecapApp {
   }
 
   /**
+   * Normalize error messages for consistent user experience
+   * @param {Error} error - Error object
+   * @param {string} year - Year being processed
+   * @returns {string} Normalized error message
+   */
+  normalizeErrorMessage(error, year) {
+    const message = error.message.toLowerCase();
+
+    // Convert backend "file not found" errors to consistent "no valid data" message
+    if (
+      message.includes("log file is not found") ||
+      message.includes("file not found") ||
+      message.includes("not found")
+    ) {
+      return `Tidak ada data voting yang valid untuk tahun ${year}`;
+    }
+
+    // Keep other error messages as they are
+    return error.message;
+  }
+
+  /**
    * Handle download process
    */
   async handleDownload() {
@@ -218,15 +240,18 @@ class DataRecapApp {
         5000
       );
     } catch (error) {
+      // Normalize error message for consistency
+      const normalizedMessage = this.normalizeErrorMessage(error, year);
+
       // Show error results
       this.displayResults([
         {
-          text: `❌ ${error.message}`,
+          text: `❌ ${normalizedMessage}`,
           type: "error",
         },
       ]);
 
-      this.showToast(`Error: ${error.message}`, "error", 5000);
+      this.showToast(`Error: ${normalizedMessage}`, "error", 5000);
     }
   }
 
