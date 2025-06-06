@@ -546,7 +546,8 @@ async function handleVoteClick(event) {
 
       // Kembalikan tombol
       event.target.disabled = false;
-      event.target.innerHTML = `<button class="coblos-button" ><i class="bi bi-crosshair me-1"></i> Coblos</button>`;
+      event.target.textContent = <i class="bi bi-crosshair me-1"></i>;
+      event.target.textContent = originalText;
     }
   } catch (error) {
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
