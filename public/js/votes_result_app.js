@@ -19,7 +19,8 @@ export async function initResultsPage() {
   const electionPeriodEl = document.getElementById("electionPeriod");
   if (electionPeriodEl) {
     const currentYear = new Date().getFullYear();
-    electionPeriodEl.textContent = `${currentYear}/${currentYear + 1}`;
+    // Changed to add 1 year to both start and end year
+    electionPeriodEl.textContent = `${currentYear + 1}/${currentYear + 2}`;
   }
 
   setupCountdown();
