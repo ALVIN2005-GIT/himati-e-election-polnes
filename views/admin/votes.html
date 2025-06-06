@@ -90,6 +90,17 @@
     <!-- Voting Countdown Overlay -->
 
     <div class="page-wrapper">
+      <div class="period-selector-container mb-4">
+        <label for="periodSelect" class="form-label">Pilih Periode:</label>
+        <select
+          id="periodSelect"
+          class="form-select form-select-sm"
+          style="max-width: 200px; margin: 0 auto"
+        >
+          <option value="">Semua Periode</option>
+          <!-- Options akan diisi dinamis -->
+        </select>
+      </div>
       <div class="container text-center my-5">
         <div class="header-container">
           <h2 class="header-title mb-4">
@@ -116,17 +127,7 @@
             <!-- <span class="ms-separator">.</span><span id="timeRemainingMs">000</span> -->
           </div>
         </div>
-        <div class="period-selector-container mb-4">
-          <label for="periodSelect" class="form-label">Pilih Periode:</label>
-          <select
-            id="periodSelect"
-            class="form-select form-select-sm"
-            style="max-width: 200px; margin: 0 auto"
-          >
-            <option value="">Semua Periode</option>
-            <!-- Options akan diisi dinamis -->
-          </select>
-        </div>
+
         <button id="logout-btn" class="nav-link">
           <i class="bi bi-box-arrow-left me-1"></i>Logout
         </button>
