@@ -10,11 +10,11 @@ import {
   BASE_PUBLIC_FILE_URL,
 } from "./candidates_api.js";
 
-import { voteForCandidate } from "./votes_api.js";
+import { voteForCandidate, checkVoteStatus } from "./votes_api.js";
 
 // ======================= GLOBAL VARIABLES =======================
 let editingCandidateId = null; // To track which candidate is being edited
-
+let userHasVoted = false; // To track if user has already voted
 // ======================= BIND EVENT SAAT DOM SIAP =======================
 document.addEventListener("DOMContentLoaded", () => {
   // Menampilkan tahun di elemen dengan id "electionPeriod"
@@ -115,6 +115,8 @@ function showConfirmToast(message) {
 
 // ======================= INITIALIZE APP =======================
 export function initializeApp() {
+  // Check vote status saat app dimulai
+  checkUserVoteStatus();
   // Load candidates for public view
   // Load candidates for public view
   const publicContainer = document.getElementById("candidateList");
@@ -581,6 +583,34 @@ export async function loadCandidates(period = null) {
         photoUrl = "/public/assets/placeholder-image.jpg";
       }
 
+      // ======================= NEW FUNCTION: CHECK USER VOTE STATUS =======================
+      async function checkUserVoteStatus() {
+        try {
+          const response = await checkVoteStatus();
+
+          if (response.success && response.data) {
+            userHasVoted = response.data.has_voted || false;
+          }
+        } catch (error) {
+          console.error("Error checking vote status:", error);
+          userHasVoted = false; // Default to false if error
+        }
+      }
+      // ======================= UPDATE RENDER CANDIDATE CARDS =======================
+      // Function untuk render tombol vote berdasarkan statu
+      function renderVoteButton(candidateId) {
+        if (userHasVoted) {
+          return `<div class="voted-message">
+            <i class="bi bi-check-circle-fill text-success me-1"></i>
+            <span class="text-muted">Anda sudah memilih</span>
+          </div>`;
+        } else {
+          return `<button class="coblos-button" data-id="${candidateId}">
+            <i class="bi bi-crosshair me-1"></i> Coblos
+          </button>`;
+        }
+      }
+
       const col = document.createElement("div");
       col.className = "col-12 col-sm-6 col-lg-4 d-flex justify-content-center";
 
@@ -588,30 +618,26 @@ export async function loadCandidates(period = null) {
       card.className = "candidate-card";
 
       card.innerHTML = `
-      <div class="candidate-number">${candidate.number || ""}</div>
-      <div class="candidate-photo">
-        <img src="${photoUrl}" alt="Foto Kandidat" onerror="this.onerror=null; this.src='/public/assets/placeholder-image.jpg';">
+  <div class="candidate-number">${candidate.number || ""}</div>
+  <div class="candidate-photo">
+    <img src="${photoUrl}" alt="Foto Kandidat" onerror="this.onerror=null; this.src='/public/assets/placeholder-image.jpg';">
+  </div>
+  <div class="candidate-info-simple">
+    <div class="candidate-pair">
+      <div class="candidate-block">
+        <div class="role-label">Calon Ketua</div>
+        <span class="candidate-president">${candidate.president || ""}</span>
       </div>
-      <div class="candidate-info-simple">
-        <div class="candidate-pair">
-          <div class="candidate-block">
-            <div class="role-label">Calon Ketua</div>
-            <span class="candidate-president">${
-              candidate.president || ""
-            }</span>
-          </div>
-          <div class="candidate-block">
-            <div class="role-label">Calon Wakil Ketua</div>
-            <span class="candidate-vice">${candidate.vice || ""}</span>
-          </div>
-        </div>
+      <div class="candidate-block">
+        <div class="role-label">Calon Wakil Ketua</div>
+        <span class="candidate-vice">${candidate.vice || ""}</span>
       </div>
-      <div class="card-footer">
-        <button class="coblos-button" data-id="${
-          candidate.id
-        }"><i class="bi bi-crosshair me-1"></i> Coblos</button>
-      </div>
-      `;
+    </div>
+  </div>
+  <div class="card-footer">
+    ${renderVoteButton(candidate.id)}
+  </div>
+`;
 
       col.appendChild(card);
       candidatesGrid.appendChild(col);
@@ -653,10 +679,15 @@ export async function loadCandidates(period = null) {
       });
     });
 
-    const voteButtons = container.querySelectorAll(".coblos-button");
-    voteButtons.forEach((button) => {
-      button.addEventListener("click", handleVoteClick);
-    });
+    // ======================= UPDATE EVENT LISTENERS =======================
+    // Update bagian event listeners di loadCandidates dan loadAdminCandidates
+    // Ganti bagian event listener untuk vote buttons dengan:
+    if (!userHasVoted) {
+      const voteButtons = container.querySelectorAll(".coblos-button");
+      voteButtons.forEach((button) => {
+        button.addEventListener("click", handleVoteClick);
+      });
+    }
 
     // Success message
     const successMsg =
@@ -859,8 +890,15 @@ export async function loadAdminCandidates(period = null) {
  * Function to handle vote button click
  * @param {Event} event - The click event
  */
+// ======================= UPDATE HANDLE VOTE CLICK =======================
 async function handleVoteClick(event) {
   event.preventDefault();
+
+  // Check if user has already voted
+  if (userHasVoted) {
+    showToast("Anda sudah pernah memilih sebelumnya", "error");
+    return;
+  }
 
   const candidateId = event.target.dataset.id;
   if (!candidateId) {
@@ -877,7 +915,6 @@ async function handleVoteClick(event) {
 
   // 💾 Simpan konten asli tombol (dengan icon)
   const originalHTML = event.target.innerHTML;
-  const originalText = event.target.textContent;
 
   // 🔄 Ubah tampilan tombol saat loading
   event.target.innerHTML =
@@ -888,22 +925,29 @@ async function handleVoteClick(event) {
     const response = await voteForCandidate(candidateId);
 
     if (response.success) {
-      // ✅ Change the button appearance to show voted state
-      showToast("Vote Telah berhasil", "success");
-      event.target.innerHTML =
-        '<i class="bi bi-check-circle me-1"></i> Tercoblos';
-      event.target.classList.add("voted");
-    } else {
-      showToast(`Vote gagal : ${response.message}`, "error");
+      // ✅ Update status global
+      userHasVoted = true;
 
-      // 🔄 Kembalikan tombol ke keadaan semula (dengan icon)
+      showToast("Vote berhasil! Halaman akan dimuat ulang...", "success");
+
+      // Reload semua candidate lists untuk update tampilan
+      setTimeout(async () => {
+        const currentPeriod = document.getElementById("periodSelect")?.value;
+        const currentAdminPeriod =
+          document.getElementById("adminPeriodSelect")?.value;
+
+        await loadCandidates(currentPeriod || null);
+        await loadAdminCandidates(currentPeriod || null);
+      }, 1500);
+    } else {
+      showToast(`Vote gagal: ${response.message}`, "error");
+      // 🔄 Kembalikan tombol ke keadaan semula
       event.target.disabled = false;
       event.target.innerHTML = originalHTML;
     }
   } catch (error) {
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
-
-    // 🔄 Kembalikan tombol ke keadaan semula (dengan icon)
+    // 🔄 Kembalikan tombol ke keadaan semula
     event.target.disabled = false;
     event.target.innerHTML = originalHTML;
   }

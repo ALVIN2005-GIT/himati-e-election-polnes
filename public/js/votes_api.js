@@ -147,3 +147,46 @@ export async function getVotesByCandidate(candidateId) {
     };
   }
 }
+
+// Tambahkan function ini ke votes_api.js Anda
+
+/**
+ * Check if current user has voted
+ * @returns {Promise<Object>} Response object
+ */
+export async function checkVoteStatus() {
+  try {
+    const response = await fetch(`${BASE_URL}/api/user/vote-status`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        // Tambahkan authorization header jika perlu
+        // 'Authorization': `Bearer ${getToken()}`
+      },
+      credentials: "include", // Include cookies if using session-based auth
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: data.error?.message || "Failed to check vote status",
+        data: null,
+      };
+    }
+
+    return {
+      success: true,
+      message: data.message || "Vote status checked successfully",
+      data: data.data,
+    };
+  } catch (error) {
+    console.error("Error checking vote status:", error);
+    return {
+      success: false,
+      message: error.message || "Network error occurred",
+      data: null,
+    };
+  }
+}
