@@ -113,6 +113,18 @@ function showConfirmToast(message) {
   });
 }
 
+async function checkUserVoteStatus() {
+  try {
+    const response = await checkVoteStatus();
+
+    if (response.success && response.data) {
+      userHasVoted = response.data.has_voted || false;
+    }
+  } catch (error) {
+    console.error("Error checking vote status:", error);
+    userHasVoted = false; // Default to false if error
+  }
+}
 // ======================= INITIALIZE APP =======================
 export function initializeApp() {
   // Check vote status saat app dimulai
