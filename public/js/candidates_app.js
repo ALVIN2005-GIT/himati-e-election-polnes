@@ -596,18 +596,7 @@ export async function loadCandidates(period = null) {
       }
 
       // ======================= NEW FUNCTION: CHECK USER VOTE STATUS =======================
-      async function checkUserVoteStatus() {
-        try {
-          const response = await checkVoteStatus();
 
-          if (response.success && response.data) {
-            userHasVoted = response.data.has_voted || false;
-          }
-        } catch (error) {
-          console.error("Error checking vote status:", error);
-          userHasVoted = false; // Default to false if error
-        }
-      }
       // ======================= UPDATE RENDER CANDIDATE CARDS =======================
       // Function untuk render tombol vote berdasarkan statu
       function renderVoteButton(candidateId) {
@@ -949,6 +938,7 @@ async function handleVoteClick(event) {
           document.getElementById("adminPeriodSelect")?.value;
 
         await loadCandidates(currentPeriod || null);
+        await loadCandidatesAdmin(currentAdminPeriod || null);
         await loadAdminCandidates(currentPeriod || null);
       }, 1500);
     } else {
