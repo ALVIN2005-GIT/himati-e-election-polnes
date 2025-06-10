@@ -534,6 +534,7 @@ async function populatePeriodSelector() {
 }
 
 // ======================= UPDATED LOAD CANDIDATES WITH BETTER MESSAGING =======================
+// ======================= FIXED LOAD CANDIDATES WITH PROPER TOAST LOGIC =======================
 export async function loadCandidates(period = null) {
   const container = document.getElementById("candidateList");
   if (!container) return;
@@ -565,7 +566,7 @@ export async function loadCandidates(period = null) {
 
     container.innerHTML = "";
 
-    // Pesan yang lebih informatif
+    // ===== FIX: Jangan tampilkan toast sukses jika tidak ada kandidat =====
     if (filteredData.length === 0) {
       let noCandidateMsg;
       if (period && period.trim() !== "") {
@@ -576,6 +577,9 @@ export async function loadCandidates(period = null) {
             <p>Belum ada kandidat yang terdaftar untuk periode ${period}.</p>
             <small>Silakan pilih periode lain atau tunggu hingga ada kandidat yang mendaftar.</small>
           </div>`;
+
+        // ===== FIX: Toast untuk periode kosong =====
+        showToast(`Tidak ada kandidat untuk periode ${period}`, "warning");
       } else {
         noCandidateMsg = `
           <div class='no-data'>
@@ -584,9 +588,12 @@ export async function loadCandidates(period = null) {
             <p>Belum ada kandidat yang terdaftar dalam sistem.</p>
             <small>Silakan hubungi administrator untuk informasi lebih lanjut.</small>
           </div>`;
+
+        // ===== FIX: Toast untuk sistem kosong =====
+        showToast("Belum ada kandidat yang terdaftar dalam sistem", "warning");
       }
       container.innerHTML = noCandidateMsg;
-      return;
+      return; // ===== PENTING: Return di sini, jangan lanjut ke toast sukses =====
     }
 
     // Sort candidates by number before displaying
@@ -594,7 +601,7 @@ export async function loadCandidates(period = null) {
       (a, b) => a.number - b.number
     );
 
-    // Render candidates (kode rendering tetap sama seperti sebelumnya)
+    // Render candidates
     const candidatesGrid = document.createElement("div");
     candidatesGrid.className = "row g-4 justify-content-center";
 
@@ -613,8 +620,7 @@ export async function loadCandidates(period = null) {
         photoUrl = "/public/assets/placeholder-image.jpg";
       }
 
-      // ======================= UPDATE RENDER CANDIDATE CARDS =======================
-      // Function untuk render tombol vote berdasarkan statu
+      // Function untuk render tombol vote berdasarkan status
       function renderVoteButton(candidateId) {
         if (userHasVoted) {
           return `<div class="voted-message">
@@ -661,6 +667,7 @@ export async function loadCandidates(period = null) {
     });
 
     container.appendChild(candidatesGrid);
+
     // Add the modal HTML to the page
     if (!document.getElementById("candidateDetailModal")) {
       const modalHTML = `
@@ -688,7 +695,8 @@ export async function loadCandidates(period = null) {
         }
       });
     }
-    // Add event listeners (tetap sama seperti sebelumnya)
+
+    // Add event listeners
     const candidatePhotos = container.querySelectorAll(".candidate-photo img");
     candidatePhotos.forEach((img, index) => {
       img.addEventListener("click", () => {
@@ -698,9 +706,8 @@ export async function loadCandidates(period = null) {
 
     // Check vote status untuk periode tertentu
     await checkUserVoteStatus(period);
-    // ======================= UPDATE EVENT LISTENERS =======================
-    // Update bagian event listeners di loadCandidates dan loadAdminCandidates
-    // Ganti bagian event listener untuk vote buttons dengan:
+
+    // Update event listeners untuk vote buttons
     if (!userHasVoted) {
       const voteButtons = container.querySelectorAll(".coblos-button");
       voteButtons.forEach((button) => {
@@ -708,11 +715,11 @@ export async function loadCandidates(period = null) {
       });
     }
 
-    // Success message
+    // ===== FIX: Toast sukses hanya muncul jika ADA kandidat yang berhasil dimuat =====
     const successMsg =
       period && period.trim() !== ""
-        ? `Data kandidat periode ${period} berhasil dimuat `
-        : `Data kandidat berhasil dimuat`;
+        ? `Data kandidat periode ${period} berhasil dimuat (${filteredData.length} kandidat)`
+        : `Data kandidat berhasil dimuat (${filteredData.length} kandidat)`;
     showToast(successMsg, "success");
   } catch (error) {
     container.innerHTML = `<div class='no-data'>
@@ -723,6 +730,7 @@ export async function loadCandidates(period = null) {
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
   }
 }
+// ======================= FIXED LOAD ADMIN CANDIDATES =======================
 export async function loadAdminCandidates(period = null) {
   const container = document.getElementById("candidateAdminList");
   if (!container) return;
@@ -754,7 +762,7 @@ export async function loadAdminCandidates(period = null) {
 
     container.innerHTML = "";
 
-    // Pesan yang lebih informatif
+    // ===== FIX: Jangan tampilkan toast sukses jika tidak ada kandidat =====
     if (filteredData.length === 0) {
       let noCandidateMsg;
       if (period && period.trim() !== "") {
@@ -765,6 +773,9 @@ export async function loadAdminCandidates(period = null) {
             <p>Belum ada kandidat yang terdaftar untuk periode ${period}.</p>
             <small>Silakan pilih periode lain atau tunggu hingga ada kandidat yang mendaftar.</small>
           </div>`;
+
+        // ===== FIX: Toast untuk periode kosong =====
+        showToast(`Tidak ada kandidat untuk periode ${period}`, "warning");
       } else {
         noCandidateMsg = `
           <div class='no-data'>
@@ -773,9 +784,12 @@ export async function loadAdminCandidates(period = null) {
             <p>Belum ada kandidat yang terdaftar dalam sistem.</p>
             <small>Silakan hubungi administrator untuk informasi lebih lanjut.</small>
           </div>`;
+
+        // ===== FIX: Toast untuk sistem kosong =====
+        showToast("Belum ada kandidat yang terdaftar dalam sistem", "warning");
       }
       container.innerHTML = noCandidateMsg;
-      return;
+      return; // ===== PENTING: Return di sini, jangan lanjut ke toast sukses =====
     }
 
     // Sort candidates by number before displaying
@@ -783,7 +797,7 @@ export async function loadAdminCandidates(period = null) {
       (a, b) => a.number - b.number
     );
 
-    // Render candidates (kode rendering tetap sama seperti sebelumnya)
+    // Render candidates
     const candidatesGrid = document.createElement("div");
     candidatesGrid.className = "row g-4 justify-content-center";
 
@@ -867,7 +881,8 @@ export async function loadAdminCandidates(period = null) {
         }
       });
     }
-    // Add event listeners (tetap sama seperti sebelumnya)
+
+    // Add event listeners
     const candidatePhotos = container.querySelectorAll(".candidate-photo img");
     candidatePhotos.forEach((img, index) => {
       img.addEventListener("click", () => {
@@ -880,11 +895,11 @@ export async function loadAdminCandidates(period = null) {
       button.addEventListener("click", handleVoteClick);
     });
 
-    // Success message
+    // ===== FIX: Toast sukses hanya muncul jika ADA kandidat yang berhasil dimuat =====
     const successMsg =
       period && period.trim() !== ""
-        ? `Data kandidat periode ${period} berhasil dimuat `
-        : `Data kandidat berhasil dimuat`;
+        ? `Data kandidat periode ${period} berhasil dimuat (${filteredData.length} kandidat)`
+        : `Data kandidat berhasil dimuat (${filteredData.length} kandidat)`;
     showToast(successMsg, "success");
   } catch (error) {
     container.innerHTML = `<div class='no-data'>
