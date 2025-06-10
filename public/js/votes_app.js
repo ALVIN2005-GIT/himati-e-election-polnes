@@ -33,8 +33,8 @@ function initializeCountdown() {
     }
 
     return {
-      startDate: new Date(eventYear, 3, 25, 20, 20, 0), // 25 Mei, 20:20:00
-      endDate: new Date(eventYear, 4, 6, 16, 20, 0), // 6 Oktober, 16:20:00
+      startDate: new Date(eventYear, 6, 25, 20, 20, 0), // 25 Mei, 20:20:00
+      endDate: new Date(eventYear, 8, 6, 16, 20, 0), // 6 Oktober, 16:20:00
     };
   };
 
