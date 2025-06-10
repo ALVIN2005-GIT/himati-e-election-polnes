@@ -155,14 +155,12 @@
 
       function showConfirmToast(message) {
         return new Promise((resolve) => {
-          console.log("Menampilkan toast konfirmasi...");
           const confirmToast = document.getElementById("confirm-toast");
           const confirmMessage = document.getElementById("confirm-message");
           const yesBtn = document.getElementById("confirm-yes");
           const noBtn = document.getElementById("confirm-no");
 
           if (!confirmToast || !confirmMessage || !yesBtn || !noBtn) {
-            console.error("Elemen toast konfirmasi tidak ditemukan!");
             return resolve(false);
           }
 
@@ -387,7 +385,6 @@
             showToast("Admin Berhasil Dimuat", "success");
           })
           .catch((err) => {
-            console.error(err);
             showToast("Gagal Untuk Memuat Admin", "error");
           });
       }
@@ -447,7 +444,6 @@
             fetchAdmins();
             resetForm();
           } catch (err) {
-            console.error(err);
             showToast(`Error: ${err.message}`, "error");
           }
         });
@@ -472,7 +468,6 @@
             showToast("Admin Berhasil Dihapus", "success");
             fetchAdmins();
           } catch (err) {
-            console.error(err);
             showToast(`Admin Gagal Dihapus: ${err.message}`, "error");
           }
         }
@@ -520,6 +515,6 @@
 
     <!-- JavaScript -->
     <script type="module" src="/public/js/design_app.js"></script>
-    <script type="module" src="/public/js/users_app.js"></script>
+    <script type="module" src="/public/js/auth_app.js"></script>
   </body>
 </html>

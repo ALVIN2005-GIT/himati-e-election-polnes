@@ -1,4 +1,4 @@
-import { login, getCurrentUser, logoutUser } from "/public/js/users_api.js";
+import { login, getCurrentUser, logoutUser } from "/public/js/auth_api.js";
 
 // Global state
 let authCheckComplete = false;
@@ -86,7 +86,6 @@ function safeRedirect(url) {
   if (isRedirecting) return; // Prevent multiple redirects
 
   isRedirecting = true;
-  console.log(`Redirecting to: ${url}`);
 
   // Use replace instead of href to prevent back button issues
   window.location.replace(url);
@@ -101,7 +100,6 @@ async function checkAuth() {
     authCheckComplete = true;
     return userRes;
   } catch (error) {
-    console.error("Auth check failed:", error);
     authCheckComplete = true;
     return { success: false, message: "Network error" };
   }
@@ -221,7 +219,6 @@ function handleLoginForm() {
         showToast("Role user tidak dikenali", "error");
       }
     } catch (error) {
-      console.error("Login error:", error);
       showToast("Terjadi kesalahan sistem. Silakan coba lagi.", "error");
     } finally {
       // Re-enable form
@@ -256,7 +253,6 @@ function handleLogout() {
           showToast(`Logout gagal: ${result.message}`, "error");
         }
       } catch (error) {
-        console.error("Logout error:", error);
         showToast("Terjadi kesalahan saat logout.", "error");
       }
     }
@@ -301,7 +297,6 @@ async function initialize() {
     // For protected pages, check auth
     await handlePageProtection();
   } catch (error) {
-    console.error("Initialization error:", error);
     document.body.style.visibility = "visible";
   }
 }

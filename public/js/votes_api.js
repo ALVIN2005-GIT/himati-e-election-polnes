@@ -96,7 +96,6 @@ export async function voteForCandidate(candidateId) {
       data: data.data || null,
     };
   } catch (err) {
-    console.error("Voting error:", err);
     return {
       success: false,
       status: 0,
@@ -138,7 +137,6 @@ export async function getVotesByCandidate(candidateId) {
       data: data.data,
     };
   } catch (err) {
-    console.error("Error fetching votes by candidate:", err);
     return {
       success: false,
       status: 0,
@@ -182,7 +180,6 @@ export async function checkVoteStatus() {
       data: data.data,
     };
   } catch (error) {
-    console.error("Error checking vote status:", error);
     return {
       success: false,
       message: error.message || "Network error occurred",
