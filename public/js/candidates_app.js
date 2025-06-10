@@ -104,15 +104,15 @@ function showConfirmToast(message) {
   });
 }
 
-async function checkUserVoteStatus() {
+async function checkUserVoteStatus(period = null) {
   try {
-    const response = await checkVoteStatus();
-
+    // Kirim parameter period ke API
+    const response = await checkVoteStatus(period);
     if (response.success && response.data) {
       userHasVoted = response.data.has_voted || false;
     }
   } catch (error) {
-    userHasVoted = false; // Default to false if error
+    userHasVoted = false;
   }
 }
 // ======================= INITIALIZE APP =======================
@@ -696,6 +696,8 @@ export async function loadCandidates(period = null) {
       });
     });
 
+    // Check vote status untuk periode tertentu
+    await checkUserVoteStatus(period);
     // ======================= UPDATE EVENT LISTENERS =======================
     // Update bagian event listeners di loadCandidates dan loadAdminCandidates
     // Ganti bagian event listener untuk vote buttons dengan:
