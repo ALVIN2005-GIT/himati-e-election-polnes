@@ -21,7 +21,7 @@ function initializeCountdown() {
     const currentYear = now.getFullYear();
 
     // Cek apakah event tahun ini sudah lewat (setelah 6 Oktober)
-    const thisYearEndDate = new Date(currentYear, 8, 6, 16, 20, 0); // 6 Oktober tahun ini
+    const thisYearEndDate = new Date(currentYear, 9, 6, 16, 20, 0); // 6 Oktober tahun ini
 
     let eventYear;
     if (now > thisYearEndDate) {
@@ -33,8 +33,8 @@ function initializeCountdown() {
     }
 
     return {
-      startDate: new Date(eventYear, 6, 25, 20, 20, 0), // 25 Mei, 20:20:00
-      endDate: new Date(eventYear, 8, 6, 16, 20, 0), // 6 Oktober, 16:20:00
+      startDate: new Date(eventYear, 4, 25, 20, 20, 0), // 25 Mei, 20:20:00
+      endDate: new Date(eventYear, 9, 6, 16, 20, 0), // 6 Oktober, 16:20:00
     };
   };
 
