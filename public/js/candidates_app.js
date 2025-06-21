@@ -894,13 +894,6 @@ export async function loadAdminCandidates(period = null) {
     voteButtons.forEach((button) => {
       button.addEventListener("click", handleVoteClick);
     });
-
-    // ===== FIX: Toast sukses hanya muncul jika ADA kandidat yang berhasil dimuat =====
-    const successMsg =
-      period && period.trim() !== ""
-        ? `Data kandidat periode ${period} berhasil dimuat (${filteredData.length} kandidat)`
-        : `Data kandidat berhasil dimuat (${filteredData.length} kandidat)`;
-    showToast(successMsg, "success");
   } catch (error) {
     container.innerHTML = `<div class='no-data'>
       <i class='bi bi-exclamation-triangle'></i>
@@ -1228,8 +1221,6 @@ export async function loadCandidatesAdmin(period = null) {
   if (!container) return;
 
   try {
-    showToast("Memuat data kandidat untuk admin...", "info");
-
     // Ambil SEMUA data dulu, lalu filter di frontend
     const res = await getAllCandidates();
 
@@ -1365,12 +1356,6 @@ export async function loadCandidatesAdmin(period = null) {
         handleDeleteCandidate(id);
       });
     });
-
-    const successMsg =
-      period && period.trim() !== ""
-        ? `Data kandidat admin periode ${period} berhasil dimuat (${filteredData.length} kandidat)`
-        : `Data kandidat admin berhasil dimuat (${filteredData.length} kandidat)`;
-    showToast(successMsg, "success");
   } catch (error) {
     container.innerHTML = `<div class='no-data'>
       <i class='bi bi-exclamation-triangle'></i>
