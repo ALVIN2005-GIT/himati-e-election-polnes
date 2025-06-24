@@ -1369,8 +1369,6 @@ export async function loadCandidatesAdmin(period = null) {
 // ======================= HANDLE EDIT KANDIDAT =======================
 async function handleEditCandidate(id) {
   try {
-    showToast("Memuat data kandidat untuk diedit...", "info");
-
     const res = await getCandidateById(id);
 
     if (!res.success || !res.data) {
@@ -1437,8 +1435,6 @@ async function handleEditCandidate(id) {
 
     // Scroll to form
     form.scrollIntoView({ behavior: "smooth" });
-
-    showToast("Data kandidat siap diedit", "success");
   } catch (error) {
     showToast(`Terjadi kesalahan: ${error.message}`, "error");
   }
