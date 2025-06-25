@@ -106,13 +106,20 @@ function showConfirmToast(message) {
 
 async function checkUserVoteStatus(period = null) {
   try {
-    // Kirim parameter period ke API
     const response = await checkVoteStatus(period);
     if (response.success && response.data) {
       userHasVoted = response.data.has_voted || false;
     }
   } catch (error) {
+    // Set default tanpa log error 400
     userHasVoted = false;
+    // Hanya log jika bukan 400 error
+    if (
+      !error.message.includes("400") &&
+      !error.message.includes("Bad Request")
+    ) {
+      console.warn("Vote status check failed:", error.message);
+    }
   }
 }
 // ======================= INITIALIZE APP =======================

@@ -158,8 +158,6 @@ export async function checkVoteStatus() {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        // Tambahkan authorization header jika perlu
-        // 'Authorization': `Bearer ${getToken()}`
       },
       credentials: "include", // Include cookies if using session-based auth
     });
