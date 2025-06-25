@@ -104,9 +104,9 @@ function showConfirmToast(message) {
   });
 }
 
-async function checkUserVoteStatus(period = null) {
+async function checkUserVoteStatus() {
   try {
-    const response = await checkVoteStatus(period);
+    const response = await checkVoteStatus();
     if (response.success && response.data) {
       userHasVoted = response.data.has_voted || false;
     }
@@ -712,7 +712,7 @@ export async function loadCandidates(period = null) {
     });
 
     // Check vote status untuk periode tertentu
-    await checkUserVoteStatus(period);
+    await checkUserVoteStatus();
 
     // Update event listeners untuk vote buttons
     if (!userHasVoted) {
